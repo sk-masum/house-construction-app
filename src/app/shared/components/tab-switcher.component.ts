@@ -5,12 +5,18 @@
  * A generic, theme-aware tab switcher component for switching between views.
  * Used for filtering, organizing, and displaying different data views.
  *
+ * Features:
+ * - Theme-based styling with CSS variables
+ * - Transparent background with bottom border indicator
+ * - Responsive design optimized for mobile
+ * - Full keyboard navigation support
+ * - High contrast and reduced motion support
+ *
  * Usage:
  *   <app-tab-switcher
- *     [tabs]="['By Date', 'By Category', 'By Status']"
- *     [values]="['date', 'category', 'status']"
+ *     [tabs]="tabs"
  *     [activeValue]="activeView"
- *     (onTabChange)="setView($event)"
+ *     (onTabChange)="onTabChange($event)"
  *   ></app-tab-switcher>
  * ===================================================
  */
@@ -41,6 +47,9 @@ export interface TabConfig {
   `,
   styleUrls: ['./tab-switcher.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '[class]': '"tab-switcher"',
+  },
 })
 export class TabSwitcherComponent {
   /**
