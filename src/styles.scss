@@ -3,6 +3,10 @@
 @tailwind components;
 @tailwind utilities;
 
+html {
+  color-scheme: dark;
+}
+
 html,
 body {
   height: 100%;
@@ -13,6 +17,106 @@ body {
   /* Prevents iOS pull-to-refresh and selection highlighting */
   overscroll-behavior-y: none;
   -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  isolation: isolate;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 0% 0%, rgba(16, 185, 129, 0.2), transparent 55%),
+    radial-gradient(ellipse at 100% 45%, rgba(59, 130, 246, 0.16), transparent 60%),
+    radial-gradient(ellipse at 20% 100%, rgba(139, 92, 246, 0.14), transparent 55%),
+    #171717;
+}
+
+.surface-card {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01)),
+    rgba(22, 28, 34, 0.78);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.surface-card-interactive:active {
+  border-color: rgba(110, 231, 183, 0.25);
+  background-color: rgba(38, 53, 52, 0.9);
+}
+
+@media (hover: hover) {
+  .surface-card-interactive:hover {
+    border-color: rgba(110, 231, 183, 0.25);
+    background-color: rgba(38, 53, 52, 0.9);
+  }
+}
+
+.date-group-header {
+  background-color: #1c2528;
+}
+
+@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .date-group-header {
+    background-color: rgba(23, 23, 23, 0.65);
+    -webkit-backdrop-filter: blur(16px) saturate(150%);
+    backdrop-filter: blur(16px) saturate(150%);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .surface-card {
+    background: #20282d;
+  }
+
+  .date-group-header {
+    background-color: #1c2528;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+.theme-action-button.ant-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 18px;
+  border-radius: 999px;
+  font-weight: 600;
+
+  > .anticon + span {
+    margin-left: 0;
+  }
+
+  &:not(:disabled) {
+    border-color: rgba(110, 231, 183, 0.35);
+    background: linear-gradient(145deg, rgba(52, 211, 153, 0.24), rgba(16, 185, 129, 0.1));
+    color: #a7f3d0;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+
+    &:hover,
+    &:focus {
+      border-color: #6ee7b7;
+      background: rgba(16, 185, 129, 0.24);
+      color: #d1fae5;
+    }
+
+    &:focus-visible {
+      outline: 2px solid #6ee7b7;
+      outline-offset: 3px;
+    }
+
+    &:active {
+      background: rgba(16, 185, 129, 0.32);
+    }
+  }
 }
 
 /* ----------------------------------------- */

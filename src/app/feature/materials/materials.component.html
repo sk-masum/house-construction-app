@@ -2,8 +2,15 @@
   <!-- Header & Add Button -->
   <div class="flex justify-between items-center mb-4">
     <h1 class="text-2xl font-bold m-0 text-white">Materials</h1>
-    <button nz-button nzType="primary" nzShape="round" (click)="openDrawer()">
-      <span nz-icon nzType="plus"></span> Add
+    <button
+      nz-button
+      nzType="primary"
+      nzShape="round"
+      class="theme-action-button"
+      (click)="openDrawer()"
+    >
+      <span nz-icon nzType="plus"></span>
+      <span>Add</span>
     </button>
   </div>
 
@@ -55,7 +62,7 @@
           <div>
             <!-- Date Group Header -->
             <div
-              class="flex justify-between items-end mb-4 border-b border-neutral-700 pb-3 sticky top-[env(safe-area-inset-top)] z-20 bg-neutral-900/95 backdrop-blur-md -mx-4 px-4 pt-3 shadow-sm"
+              class="date-group-header flex justify-between items-end mb-4 border-b border-neutral-700 pb-3 sticky top-[env(safe-area-inset-top)] z-20 -mx-4 px-4 pt-3 shadow-sm"
             >
               <div>
                 <h2 class="text-lg font-bold text-white m-0">
@@ -103,7 +110,7 @@
       @for (group of materialGroups; track group.name) {
         <div
           (click)="openDetail(group.name, group.items)"
-          class="bg-neutral-800 p-4 rounded-xl border border-neutral-700 shadow-sm flex flex-col justify-between active:scale-95 transition-transform cursor-pointer"
+          class="surface-card surface-card-interactive p-4 rounded-xl flex flex-col justify-between active:scale-95 transition-transform cursor-pointer"
         >
           <div class="mb-3">
             <h3 class="text-lg font-bold text-emerald-400 m-0 truncate">
@@ -135,7 +142,7 @@
       @for (group of builderGroups; track group.name) {
         <div
           (click)="openDetail(group.name, group.items)"
-          class="bg-neutral-800 p-4 rounded-xl border border-neutral-700 shadow-sm flex justify-between items-center active:bg-neutral-700 transition-colors cursor-pointer"
+          class="surface-card surface-card-interactive p-4 rounded-xl flex justify-between items-center transition-colors cursor-pointer"
         >
           <div>
             <h3 class="text-lg font-bold text-blue-400 m-0">
@@ -288,7 +295,7 @@
           nzType="primary"
           nzBlock
           nzSize="large"
-          class="mt-2 sticky bottom-4"
+          class="theme-action-button mt-2 sticky bottom-4"
         >
           Save Material
         </button>
@@ -298,10 +305,8 @@
 
   <!-- REUSABLE CARD TEMPLATE -->
   <ng-template #itemCard let-item>
-    <div
-      class="bg-neutral-800 p-4 rounded-xl border border-neutral-700 shadow-sm relative"
-    >
-      <div class="flex justify-between items-start mb-2 pr-8">
+    <div class="surface-card p-4 rounded-xl relative">
+      <div class="flex justify-between items-start mb-2 pr-12">
         <h3 class="text-lg font-bold text-white m-0 truncate">
           {{ item.name }}
         </h3>
@@ -334,7 +339,7 @@
           </p>
         </div>
       </div>
-      <div class="absolute top-3 right-2 flex gap-2">
+      <div class="absolute top-3 right-2 flex gap-0.5">
         <button
           (click)="openDrawer(item)"
           class="text-neutral-400 hover:text-blue-400 bg-transparent border-none p-1"

@@ -2,8 +2,15 @@
   <!-- Header & Add Button -->
   <div class="flex justify-between items-center mb-6">
     <h1 class="text-2xl font-bold m-0 text-white">Ledger</h1>
-    <button nz-button nzType="primary" nzShape="round" (click)="openDrawer()">
-      <span nz-icon nzType="plus"></span> Add
+    <button
+      nz-button
+      nzType="primary"
+      nzShape="round"
+      class="theme-action-button"
+      (click)="openDrawer()"
+    >
+      <span nz-icon nzType="plus"></span>
+      <span>Add</span>
     </button>
   </div>
 
@@ -42,7 +49,7 @@
           <div>
             <!-- Sticky Date Header -->
             <div
-              class="flex justify-between items-end mb-4 border-b border-neutral-700 pb-3 sticky top-[env(safe-area-inset-top)] z-20 bg-neutral-900/95 backdrop-blur-md -mx-4 px-4 pt-3 shadow-sm"
+              class="date-group-header flex justify-between items-end mb-4 border-b border-neutral-700 pb-3 sticky top-[env(safe-area-inset-top)] z-20 -mx-4 px-4 pt-3 shadow-sm"
             >
               <div>
                 <h2 class="text-lg font-bold text-white m-0">
@@ -88,7 +95,7 @@
       @for (group of receiverGroups; track group.name) {
         <div
           (click)="openDetail(group.name, group.items)"
-          class="bg-neutral-800 p-4 rounded-xl border border-neutral-700 shadow-sm flex justify-between items-center active:bg-neutral-700 transition-colors cursor-pointer"
+          class="surface-card surface-card-interactive p-4 rounded-xl flex justify-between items-center transition-colors cursor-pointer"
         >
           <div>
             <h3 class="text-lg font-bold text-blue-400 m-0">
@@ -206,7 +213,7 @@
           nzType="primary"
           nzBlock
           nzSize="large"
-          class="mt-2 sticky bottom-4"
+          class="theme-action-button mt-2 sticky bottom-4"
         >
           Save Transaction
         </button>
@@ -217,7 +224,7 @@
   <!-- REUSABLE TRANSACTION CARD TEMPLATE -->
   <ng-template #itemCard let-item>
     <div
-      class="bg-neutral-800 p-4 rounded-xl border border-neutral-700 shadow-sm relative"
+      class="surface-card p-4 rounded-xl relative"
     >
       <div
         class="flex justify-between items-end border-b border-neutral-700 pb-3 mb-3 pr-8"

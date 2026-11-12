@@ -11,7 +11,7 @@
           "/index.csr.html",
           "/index.html",
           "/manifest.webmanifest",
-          "/icons/apple-touch-icon.png",
+          "/icons/*.png",
           "/icons/site-ledger-icon.svg",
           "/*.css",
           "/*.js"

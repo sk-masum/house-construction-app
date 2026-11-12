@@ -5,7 +5,7 @@
   <div class="grid grid-cols-2 gap-4 mb-8">
     <!-- Material Spend Card -->
     <div
-      class="bg-neutral-800 p-4 rounded-xl border border-neutral-700 shadow-sm flex flex-col justify-center"
+      class="surface-card p-4 rounded-xl flex flex-col justify-center"
     >
       <p class="text-[11px] text-neutral-400 uppercase tracking-wider mb-1 m-0">
         Material Spend
@@ -17,7 +17,7 @@
 
     <!-- Ledger Transactions Card -->
     <div
-      class="bg-neutral-800 p-4 rounded-xl border border-neutral-700 shadow-sm flex flex-col justify-center"
+      class="surface-card p-4 rounded-xl flex flex-col justify-center"
     >
       <p class="text-[11px] text-neutral-400 uppercase tracking-wider mb-1 m-0">
         Ledger Total
@@ -91,7 +91,7 @@
   <h2 class="text-lg font-semibold text-neutral-300 mb-4">Recent Activity</h2>
 
   <div
-    class="bg-neutral-800 p-5 rounded-xl border border-neutral-700 shadow-sm"
+    class="surface-card p-5 rounded-xl"
   >
     <nz-timeline *ngIf="recentActivity.length > 0; else emptyState">
       <nz-timeline-item

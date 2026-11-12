@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import {
   FormBuilder,
   FormGroup,
-  FormControl,
   Validators,
   ReactiveFormsModule,
 } from '@angular/forms';
