@@ -8,6 +8,7 @@ import {
 } from '@angular/forms';
 import { DbService, Transaction } from '../../core/services/db.service';
 import { FlatpickrUtils } from '../../shared/utils/flatpickr.utils';
+import { TabSwitcherComponent, TabConfig } from '../../shared/components/tab-switcher.component';
 import 'flatpickr/dist/flatpickr.min.css';
 
 import { NzDrawerModule } from 'ng-zorro-antd/drawer';
@@ -24,6 +25,7 @@ import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    TabSwitcherComponent,
     NzDrawerModule,
     NzFormModule,
     NzInputModule,
@@ -36,6 +38,11 @@ import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 })
 export class TransactionsComponent implements OnInit {
   readonly RECEIVER_OPTIONS = ['SS', 'Nice', 'KGN', 'Sukhchand'];
+  
+  readonly tabs: TabConfig[] = [
+    { label: 'By Date', value: 'date' },
+    { label: 'By Receiver', value: 'receiver' },
+  ];
 
   // Form & View States
   isDrawerVisible = false;
@@ -153,6 +160,10 @@ export class TransactionsComponent implements OnInit {
   // --- Navigation & Drill Down ---
   setView(view: 'date' | 'receiver') {
     this.activeView = view;
+  }
+
+  onTabChange(value: string) {
+    this.setView(value as 'date' | 'receiver');
   }
 
   openDetail(title: string, items: Transaction[]) {

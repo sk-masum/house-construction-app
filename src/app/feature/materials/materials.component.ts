@@ -16,6 +16,7 @@ import {
 import { Subscription } from 'rxjs';
 import { DbService, Material } from '../../core/services/db.service';
 import { FlatpickrUtils } from '../../shared/utils/flatpickr.utils';
+import { TabSwitcherComponent, TabConfig } from '../../shared/components/tab-switcher.component';
 import 'flatpickr/dist/flatpickr.min.css';
 
 import { NzDrawerModule } from 'ng-zorro-antd/drawer';
@@ -32,6 +33,7 @@ import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    TabSwitcherComponent,
     NzDrawerModule,
     NzFormModule,
     NzInputModule,
@@ -56,6 +58,12 @@ export class MaterialsComponent implements OnInit, OnDestroy {
     '7x7 Ring',
   ];
   readonly BUILDER_OPTIONS = ['SS', 'Nice', 'KGN'];
+  
+  readonly tabs: TabConfig[] = [
+    { label: 'By Date', value: 'date' },
+    { label: 'By Material', value: 'material' },
+    { label: 'By Builder', value: 'builder' },
+  ];
 
   dateGroups: any[] = [];
 
@@ -245,6 +253,10 @@ export class MaterialsComponent implements OnInit, OnDestroy {
   // --- View Navigation & Drill Down ---
   setView(view: 'date' | 'material' | 'builder') {
     this.activeView = view;
+  }
+
+  onTabChange(value: string) {
+    this.setView(value as 'date' | 'material' | 'builder');
   }
 
   openDetail(title: string, items: Material[]) {

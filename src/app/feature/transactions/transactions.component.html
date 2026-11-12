@@ -14,27 +14,13 @@
     </button>
   </div>
 
-  <!-- View Switcher -->
-  <div
-    class="flex bg-neutral-800 p-1 rounded-lg mb-6 border border-neutral-700"
-  >
-    <button
-      (click)="setView('date')"
-      [class.bg-neutral-600]="activeView === 'date'"
-      [class.text-white]="activeView === 'date'"
-      class="flex-1 py-2 text-sm font-semibold rounded-md text-neutral-400 transition-colors"
-    >
-      By Date
-    </button>
-    <button
-      (click)="setView('receiver')"
-      [class.bg-neutral-600]="activeView === 'receiver'"
-      [class.text-white]="activeView === 'receiver'"
-      class="flex-1 py-2 text-sm font-semibold rounded-md text-neutral-400 transition-colors"
-    >
-      By Receiver
-    </button>
-  </div>
+  <!-- View Switcher (Using Centralized TabSwitcherComponent) -->
+  <app-tab-switcher 
+    [tabs]="tabs"
+    [activeValue]="activeView"
+    (onTabChange)="onTabChange($event)"
+    class="mb-6"
+  ></app-tab-switcher>
 
   <!-- VIEW 1: BY DATE -->
   @if (activeView === "date") {

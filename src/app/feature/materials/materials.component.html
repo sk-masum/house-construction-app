@@ -17,35 +17,13 @@
   <!-- Advanced Filter Bar (Hidden for brevity, keep your existing one here) -->
   <!-- [Your existing filterForm div goes here] -->
 
-  <!-- View Switcher (iOS Style Segmented Control) -->
-  <div
-    class="flex bg-neutral-800 p-1 rounded-lg mb-6 border border-neutral-700"
-  >
-    <button
-      (click)="setView('date')"
-      [class.bg-neutral-600]="activeView === 'date'"
-      [class.text-white]="activeView === 'date'"
-      class="flex-1 py-2 text-xs font-semibold rounded-md text-neutral-400 transition-colors"
-    >
-      By Date
-    </button>
-    <button
-      (click)="setView('material')"
-      [class.bg-neutral-600]="activeView === 'material'"
-      [class.text-white]="activeView === 'material'"
-      class="flex-1 py-2 text-xs font-semibold rounded-md text-neutral-400 transition-colors"
-    >
-      By Material
-    </button>
-    <button
-      (click)="setView('builder')"
-      [class.bg-neutral-600]="activeView === 'builder'"
-      [class.text-white]="activeView === 'builder'"
-      class="flex-1 py-2 text-xs font-semibold rounded-md text-neutral-400 transition-colors"
-    >
-      By Builder
-    </button>
-  </div>
+  <!-- View Switcher (Using Centralized TabSwitcherComponent) -->
+  <app-tab-switcher 
+    [tabs]="tabs"
+    [activeValue]="activeView"
+    (onTabChange)="onTabChange($event)"
+    class="mb-6"
+  ></app-tab-switcher>
 
   <!-- MAIN CONTENT AREA -->
 
