@@ -1,5 +1,35 @@
+// ════════════════════════════════════════════════════════════════════
+// iOS SAFE AREA FIXES
+// ════════════════════════════════════════════════════════════════════
+
+// Ensure viewport meta tag in index.html includes:
+// <meta name="viewport" content="viewport-fit=cover">
+
+// Fix bottom safe area padding for iOS PWA (home indicator bar)
+:host ::ng-deep {
+  nz-drawer {
+    // Adjust drawer content bottom padding for iOS safe area
+    .ant-drawer-content-wrapper {
+      padding-bottom: env(safe-area-inset-bottom) !important;
+    }
+
+    // Adjust drawer footer/button area
+    .ant-drawer-footer,
+    form {
+      padding-bottom: calc(1rem + env(safe-area-inset-bottom)) !important;
+    }
+  }
+
+  // Page container safe area
+  .p-4 {
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom)) !important;
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
 // iOS-friendly native form controls styling
-input[type="number"],
+// ════════════════════════════════════════════════════════════════════
+
 input[type="date"],
 input[type="text"],
 select {

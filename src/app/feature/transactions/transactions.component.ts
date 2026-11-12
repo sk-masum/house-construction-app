@@ -7,16 +7,16 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { DbService, Transaction } from '../../core/services/db.service';
+import flatpickr from 'flatpickr';
+import 'flatpickr/dist/flatpickr.min.css';
 
 import { NzDrawerModule } from 'ng-zorro-antd/drawer';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
-import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
-import { NzSelectModule } from 'ng-zorro-antd/select';
 
 @Component({
   selector: 'app-transactions',
@@ -28,11 +28,9 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
     NzFormModule,
     NzInputModule,
     NzInputNumberModule,
-    NzDatePickerModule,
     NzButtonModule,
     NzIconModule,
     NzPopconfirmModule,
-    NzSelectModule,
   ],
   templateUrl: './transactions.component.html',
 })
@@ -58,6 +56,9 @@ export class TransactionsComponent implements OnInit {
   detailTitle = '';
   detailItems: Transaction[] = [];
 
+  // Flatpickr instance
+  private datetimePickerInstance: any;
+
   constructor(
     private fb: FormBuilder,
     private db: DbService,
@@ -74,8 +75,8 @@ export class TransactionsComponent implements OnInit {
       id: [null],
       amount: [null, [Validators.required, Validators.min(1)]],
       dateTime: [new Date(), [Validators.required]],
-      provider: [null, [Validators.required]], // Free text input
-      receiver: [null, [Validators.required]], // Dropdown
+      provider: [null, [Validators.required]],
+      receiver: [null, [Validators.required]],
     });
   }
 
@@ -182,10 +183,15 @@ export class TransactionsComponent implements OnInit {
       this.transactionForm.reset({ dateTime: new Date() });
     }
     this.isDrawerVisible = true;
+    setTimeout(() => this.initializeFlatpickr(), 100);
   }
 
   closeDrawer(): void {
     this.isDrawerVisible = false;
+    if (this.datetimePickerInstance) {
+      this.datetimePickerInstance.destroy();
+      this.datetimePickerInstance = null;
+    }
   }
 
   async submitForm() {
@@ -219,4 +225,43 @@ export class TransactionsComponent implements OnInit {
       }
     }
   }
+
+  // --- Flatpickr Initialization ---
+  private initializeFlatpickr(): void {
+    const inputElement = document.getElementById('datetimeInput') as HTMLInputElement;
+    if (!inputElement) return;
+
+    if (this.datetimePickerInstance) {
+      this.datetimePickerInstance.destroy();
+    }
+
+    const currentValue = this.transactionForm.get('dateTime')?.value;
+    const dateString = currentValue ? this.formatDateForFlatpickr(currentValue) : '';
+
+    this.datetimePickerInstance = flatpickr('#datetimeInput', {
+      enableTime: true,
+      dateFormat: 'Y-m-d H:i',
+      time_24hr: true,
+      defaultDate: dateString,
+      onChange: (selectedDates) => {
+        if (selectedDates.length > 0) {
+          this.transactionForm.patchValue({
+            dateTime: selectedDates[0],
+          });
+        }
+      },
+    });
+  }
+
+  private formatDateForFlatpickr(date: any): string {
+    if (!date) return '';
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day} ${hours}:${minutes}`;
+  }
 }
+

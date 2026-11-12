@@ -1,4 +1,11 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  ChangeDetectorRef,
+  ViewChild,
+  ElementRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   FormBuilder,
@@ -40,9 +47,12 @@ export class MaterialsComponent implements OnInit, OnDestroy {
     'Cement',
     'Bricks',
     'Stone',
+    'Sand',
     '8 Bar',
     '10 Bar',
     '12 Bar',
+    '6 Bar',
+    '16 Bar',
     '7x7 Ring',
   ];
   readonly BUILDER_OPTIONS = ['SS', 'Nice', 'KGN'];
@@ -262,7 +272,7 @@ export class MaterialsComponent implements OnInit, OnDestroy {
       });
     }
     this.isDrawerVisible = true;
-    
+
     setTimeout(() => {
       this.initializeFlatpickr();
     }, 100);
@@ -276,7 +286,9 @@ export class MaterialsComponent implements OnInit, OnDestroy {
   }
 
   private initializeFlatpickr(): void {
-    const dateInput = document.querySelector('#deliveryDateInput') as HTMLInputElement;
+    const dateInput = document.querySelector(
+      '#deliveryDateInput',
+    ) as HTMLInputElement;
     if (!dateInput) return;
 
     if (this.datepickerInstance) {
@@ -284,7 +296,7 @@ export class MaterialsComponent implements OnInit, OnDestroy {
     }
 
     const currentDate = this.materialForm.get('deliveryDate')?.value;
-    
+
     this.datepickerInstance = flatpickr(dateInput, {
       mode: 'single',
       dateFormat: 'Y-m-d',
@@ -323,7 +335,7 @@ export class MaterialsComponent implements OnInit, OnDestroy {
   async submitForm() {
     if (this.materialForm.valid) {
       const formValue = this.materialForm.getRawValue();
-      
+
       // Flatpickr already stores as Date, but ensure it's a Date object
       if (!(formValue.deliveryDate instanceof Date)) {
         formValue.deliveryDate = new Date(formValue.deliveryDate);

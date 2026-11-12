@@ -157,12 +157,14 @@
         <nz-form-item class="mb-4">
           <nz-form-label nzRequired>Amount (₹)</nz-form-label>
           <nz-form-control nzErrorTip="Please enter a valid amount">
-            <nz-input-number
+            <input
+              type="number"
               formControlName="amount"
-              [nzMin]="1"
-              class="w-full bg-neutral-800 border-neutral-700 text-white"
-              nzSize="large"
-            ></nz-input-number>
+              min="1"
+              placeholder="Enter amount"
+              class="w-full px-3 py-2 bg-neutral-800 border border-neutral-700 text-white rounded text-base"
+              style="appearance: none; -webkit-appearance: none; -moz-appearance: textfield;"
+            />
           </nz-form-control>
         </nz-form-item>
 
@@ -171,10 +173,10 @@
             <nz-form-label nzRequired>Provider (From)</nz-form-label>
             <nz-form-control nzErrorTip="Required">
               <input
-                nz-input
+                type="text"
                 formControlName="provider"
                 placeholder="e.g., Bank"
-                class="bg-neutral-800 border-neutral-700 text-white py-2"
+                class="w-full px-3 py-2 bg-neutral-800 border border-neutral-700 text-white rounded text-base"
               />
             </nz-form-control>
           </nz-form-item>
@@ -182,16 +184,16 @@
           <nz-form-item class="mb-0">
             <nz-form-label nzRequired>Receiver (To)</nz-form-label>
             <nz-form-control nzErrorTip="Required">
-              <nz-select
+              <select
                 formControlName="receiver"
-                nzPlaceHolder="Select receiver"
-                nzSize="large"
-                class="w-full"
+                class="w-full px-3 py-2 bg-neutral-800 border border-neutral-700 text-white rounded text-base"
+                style="appearance: none; -webkit-appearance: none; -moz-appearance: none;"
               >
+                <option value="">Select receiver</option>
                 @for (rec of RECEIVER_OPTIONS; track rec) {
-                  <nz-option [nzValue]="rec" [nzLabel]="rec"></nz-option>
+                  <option [value]="rec">{{ rec }}</option>
                 }
-              </nz-select>
+              </select>
             </nz-form-control>
           </nz-form-item>
         </div>
@@ -199,12 +201,12 @@
         <nz-form-item class="mb-6">
           <nz-form-label nzRequired>Date & Time</nz-form-label>
           <nz-form-control>
-            <nz-date-picker
-              nzShowTime
-              formControlName="dateTime"
-              class="w-full bg-neutral-800 border-neutral-700"
-              nzSize="large"
-            ></nz-date-picker>
+            <input
+              type="text"
+              id="datetimeInput"
+              class="flatpickr-input w-full px-3 py-2 bg-neutral-800 border border-neutral-700 text-white rounded text-base"
+              placeholder="Select date and time"
+            />
           </nz-form-control>
         </nz-form-item>
 
@@ -214,6 +216,7 @@
           nzBlock
           nzSize="large"
           class="theme-action-button mt-2 sticky bottom-4"
+          [style.paddingBottom.px]="'calc(0.5rem + env(safe-area-inset-bottom))'"
         >
           Save Transaction
         </button>
