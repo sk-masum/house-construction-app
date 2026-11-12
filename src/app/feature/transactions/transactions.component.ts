@@ -7,7 +7,7 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { DbService, Transaction } from '../../core/services/db.service';
-import flatpickr from 'flatpickr';
+import { FlatpickrUtils } from '../../shared/utils/flatpickr.utils';
 import 'flatpickr/dist/flatpickr.min.css';
 
 import { NzDrawerModule } from 'ng-zorro-antd/drawer';
@@ -188,10 +188,8 @@ export class TransactionsComponent implements OnInit {
 
   closeDrawer(): void {
     this.isDrawerVisible = false;
-    if (this.datetimePickerInstance) {
-      this.datetimePickerInstance.destroy();
-      this.datetimePickerInstance = null;
-    }
+    FlatpickrUtils.destroy(this.datetimePickerInstance);
+    this.datetimePickerInstance = null;
   }
 
   async submitForm() {
@@ -228,40 +226,11 @@ export class TransactionsComponent implements OnInit {
 
   // --- Flatpickr Initialization ---
   private initializeFlatpickr(): void {
-    const inputElement = document.getElementById('datetimeInput') as HTMLInputElement;
-    if (!inputElement) return;
-
-    if (this.datetimePickerInstance) {
-      this.datetimePickerInstance.destroy();
-    }
-
-    const currentValue = this.transactionForm.get('dateTime')?.value;
-    const dateString = currentValue ? this.formatDateForFlatpickr(currentValue) : '';
-
-    this.datetimePickerInstance = flatpickr('#datetimeInput', {
-      enableTime: true,
-      dateFormat: 'Y-m-d H:i',
-      time_24hr: true,
-      defaultDate: dateString,
-      onChange: (selectedDates) => {
-        if (selectedDates.length > 0) {
-          this.transactionForm.patchValue({
-            dateTime: selectedDates[0],
-          });
-        }
-      },
-    });
-  }
-
-  private formatDateForFlatpickr(date: any): string {
-    if (!date) return '';
-    const d = new Date(date);
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    const hours = String(d.getHours()).padStart(2, '0');
-    const minutes = String(d.getMinutes()).padStart(2, '0');
-    return `${year}-${month}-${day} ${hours}:${minutes}`;
+    this.datetimePickerInstance = FlatpickrUtils.initializeDatetimePicker(
+      this.transactionForm,
+      'datetimeInput',
+      'dateTime'
+    );
   }
 }
 

@@ -15,7 +15,7 @@ import {
 } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { DbService, Material } from '../../core/services/db.service';
-import flatpickr from 'flatpickr';
+import { FlatpickrUtils } from '../../shared/utils/flatpickr.utils';
 import 'flatpickr/dist/flatpickr.min.css';
 
 import { NzDrawerModule } from 'ng-zorro-antd/drawer';
@@ -280,56 +280,16 @@ export class MaterialsComponent implements OnInit, OnDestroy {
 
   closeDrawer(): void {
     this.isDrawerVisible = false;
-    if (this.datepickerInstance) {
-      this.datepickerInstance.destroy();
-    }
+    FlatpickrUtils.destroy(this.datepickerInstance);
+    this.datepickerInstance = null;
   }
 
   private initializeFlatpickr(): void {
-    const dateInput = document.querySelector(
-      '#deliveryDateInput',
-    ) as HTMLInputElement;
-    if (!dateInput) return;
-
-    if (this.datepickerInstance) {
-      this.datepickerInstance.destroy();
-    }
-
-    const currentDate = this.materialForm.get('deliveryDate')?.value;
-
-    this.datepickerInstance = flatpickr(dateInput, {
-      mode: 'single',
-      dateFormat: 'Y-m-d',
-      defaultDate: currentDate || new Date(),
-      minDate: '1900-01-01',
-      maxDate: '2100-12-31',
-      static: true,
-      inline: false,
-      enableTime: false,
-      allowInput: true,
-      clickOpens: true,
-      disableMobile: false,
-      onChange: (selectedDates: Date[]) => {
-        if (selectedDates && selectedDates.length > 0) {
-          this.materialForm.patchValue({
-            deliveryDate: selectedDates[0],
-          });
-        }
-      },
-    });
-  }
-
-  private toDateInputFormat(date: Date): string {
-    const d = new Date(date);
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  }
-
-  private toDateObject(dateString: string): Date {
-    const [year, month, day] = dateString.split('-').map(Number);
-    return new Date(year, month - 1, day);
+    this.datepickerInstance = FlatpickrUtils.initializeDatePicker(
+      this.materialForm,
+      'deliveryDateInput',
+      'deliveryDate'
+    );
   }
 
   async submitForm() {
