@@ -1,0 +1,25 @@
+{
+  "id": "/",
+  "name": "Site Ledger",
+  "short_name": "Site Ledger",
+  "description": "Track construction materials and expenses on site.",
+  "theme_color": "#171717",
+  "background_color": "#171717",
+  "display": "standalone",
+  "scope": "/",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "icons/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/site-ledger-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable any"
+    }
+  ]
+}

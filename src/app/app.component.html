@@ -1,0 +1,65 @@
+<!-- Main Content Area: dynamically loads your pages -->
+<main
+  class="safe-area-view bg-neutral-900 text-neutral-100"
+>
+  <router-outlet></router-outlet>
+</main>
+
+<!-- PWA Bottom Navigation Bar -->
+<nav
+  class="fixed bottom-0 w-full bg-neutral-800 border-t border-neutral-700 safe-area-navigation z-50"
+>
+  <div class="flex justify-around items-center h-[70px]">
+    <!-- Dashboard Tab -->
+    <a
+      routerLink="/dashboard"
+      routerLinkActive="text-emerald-400"
+      [routerLinkActiveOptions]="{ exact: true }"
+      class="flex flex-col items-center justify-center w-full h-full text-neutral-400 hover:text-emerald-300 transition-colors"
+    >
+      <span
+        nz-icon
+        nzType="appstore"
+        nzTheme="outline"
+        class="text-2xl mb-1"
+      ></span>
+      <span class="text-[10px] font-medium uppercase tracking-wider"
+        >Dashboard</span
+      >
+    </a>
+
+    <!-- Materials Tab -->
+    <a
+      routerLink="/materials"
+      routerLinkActive="text-emerald-400"
+      class="flex flex-col items-center justify-center w-full h-full text-neutral-400 hover:text-emerald-300 transition-colors"
+    >
+      <span
+        nz-icon
+        nzType="gold"
+        nzTheme="outline"
+        class="text-2xl mb-1"
+      ></span>
+      <span class="text-[10px] font-medium uppercase tracking-wider"
+        >Materials</span
+      >
+    </a>
+
+    <!-- Transactions Tab -->
+    <a
+      routerLink="/transactions"
+      routerLinkActive="text-emerald-400"
+      class="flex flex-col items-center justify-center w-full h-full text-neutral-400 hover:text-emerald-300 transition-colors"
+    >
+      <span
+        nz-icon
+        nzType="swap"
+        nzTheme="outline"
+        class="text-2xl mb-1"
+      ></span>
+      <span class="text-[10px] font-medium uppercase tracking-wider"
+        >Ledger</span
+      >
+    </a>
+  </div>
+</nav>

@@ -1,0 +1,356 @@
+<div class="p-4">
+  <!-- Header & Add Button -->
+  <div class="flex justify-between items-center mb-4">
+    <h1 class="text-2xl font-bold m-0 text-white">Materials</h1>
+    <button nz-button nzType="primary" nzShape="round" (click)="openDrawer()">
+      <span nz-icon nzType="plus"></span> Add
+    </button>
+  </div>
+
+  <!-- Advanced Filter Bar (Hidden for brevity, keep your existing one here) -->
+  <!-- [Your existing filterForm div goes here] -->
+
+  <!-- View Switcher (iOS Style Segmented Control) -->
+  <div
+    class="flex bg-neutral-800 p-1 rounded-lg mb-6 border border-neutral-700"
+  >
+    <button
+      (click)="setView('date')"
+      [class.bg-neutral-600]="activeView === 'date'"
+      [class.text-white]="activeView === 'date'"
+      class="flex-1 py-2 text-xs font-semibold rounded-md text-neutral-400 transition-colors"
+    >
+      By Date
+    </button>
+    <button
+      (click)="setView('material')"
+      [class.bg-neutral-600]="activeView === 'material'"
+      [class.text-white]="activeView === 'material'"
+      class="flex-1 py-2 text-xs font-semibold rounded-md text-neutral-400 transition-colors"
+    >
+      By Material
+    </button>
+    <button
+      (click)="setView('builder')"
+      [class.bg-neutral-600]="activeView === 'builder'"
+      [class.text-white]="activeView === 'builder'"
+      class="flex-1 py-2 text-xs font-semibold rounded-md text-neutral-400 transition-colors"
+    >
+      By Builder
+    </button>
+  </div>
+
+  <!-- MAIN CONTENT AREA -->
+
+  <!-- VIEW 1: BY DATE (Grouped List) -->
+  @if (activeView === "date") {
+    <div class="flex flex-col gap-8">
+      @if (dateGroups.length === 0) {
+        <div class="text-center text-neutral-500 mt-10">
+          <span nz-icon nzType="inbox" class="text-4xl mb-2"></span>
+          <p>No materials found.</p>
+        </div>
+      } @else {
+        @for (group of dateGroups; track group.dateKey) {
+          <div>
+            <!-- Date Group Header -->
+            <div
+              class="flex justify-between items-end mb-4 border-b border-neutral-700 pb-3 sticky top-[env(safe-area-inset-top)] z-20 bg-neutral-900/95 backdrop-blur-md -mx-4 px-4 pt-3 shadow-sm"
+            >
+              <div>
+                <h2 class="text-lg font-bold text-white m-0">
+                  {{ group.displayDate | date: "fullDate" }}
+                </h2>
+                <p class="text-xs text-neutral-400 m-0">
+                  {{ group.count }} deliveries
+                </p>
+              </div>
+              <div class="text-right">
+                <p
+                  class="text-[10px] text-neutral-500 uppercase tracking-wider m-0 mb-1"
+                >
+                  Daily Total
+                </p>
+                <p class="text-emerald-400 font-semibold m-0 text-base">
+                  ₹{{ group.totalPrice | number: "1.2-2" }}
+                </p>
+              </div>
+            </div>
+
+            <!-- Group Items (Cards) -->
+            <div class="flex flex-col gap-4">
+              @for (item of group.items; track item.id) {
+                <!-- Uses your existing Reusable Item Card template -->
+                <ng-container
+                  *ngTemplateOutlet="itemCard; context: { $implicit: item }"
+                ></ng-container>
+              }
+            </div>
+          </div>
+        }
+      }
+    </div>
+  }
+
+  <!-- VIEW 2: BY MATERIAL (Grid Summary) -->
+  @if (activeView === "material") {
+    <div class="grid grid-cols-2 gap-3">
+      @if (materialGroups.length === 0) {
+        <div class="col-span-2 text-center text-neutral-500 mt-10">
+          <p>No materials found.</p>
+        </div>
+      }
+      @for (group of materialGroups; track group.name) {
+        <div
+          (click)="openDetail(group.name, group.items)"
+          class="bg-neutral-800 p-4 rounded-xl border border-neutral-700 shadow-sm flex flex-col justify-between active:scale-95 transition-transform cursor-pointer"
+        >
+          <div class="mb-3">
+            <h3 class="text-lg font-bold text-emerald-400 m-0 truncate">
+              {{ group.name }}
+            </h3>
+            <p class="text-xs text-neutral-400 m-0">{{ group.count }} Logs</p>
+          </div>
+          <div>
+            <p class="text-[10px] text-neutral-500 uppercase m-0 mb-1">
+              Total Spent
+            </p>
+            <p class="text-lg font-semibold text-white m-0">
+              ₹{{ group.totalPrice | number: "1.0-0" }}
+            </p>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- VIEW 3: BY BUILDER (List Summary) -->
+  @if (activeView === "builder") {
+    <div class="flex flex-col gap-3">
+      @if (builderGroups.length === 0) {
+        <div class="text-center text-neutral-500 mt-10">
+          <p>No builders found.</p>
+        </div>
+      }
+      @for (group of builderGroups; track group.name) {
+        <div
+          (click)="openDetail(group.name, group.items)"
+          class="bg-neutral-800 p-4 rounded-xl border border-neutral-700 shadow-sm flex justify-between items-center active:bg-neutral-700 transition-colors cursor-pointer"
+        >
+          <div>
+            <h3 class="text-lg font-bold text-blue-400 m-0">
+              {{ group.name }}
+            </h3>
+            <p class="text-xs text-neutral-400 m-0">
+              {{ group.count }} Deliveries
+            </p>
+          </div>
+          <div class="text-right">
+            <p class="text-lg font-semibold text-white m-0">
+              ₹{{ group.totalPrice | number: "1.0-0" }}
+            </p>
+            <span
+              nz-icon
+              nzType="right"
+              class="text-neutral-500 text-xs ml-2"
+            ></span>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- DRILL-DOWN DETAIL DRAWER (Slides from Right) -->
+  <nz-drawer
+    [nzVisible]="isDetailVisible"
+    nzPlacement="right"
+    [nzWidth]="'100%'"
+    [nzTitle]="detailTitle + ' History'"
+    (nzOnClose)="closeDetail()"
+  >
+    <ng-container *nzDrawerContent>
+      <div class="flex flex-col gap-4 pb-10">
+        @for (item of detailItems; track item.id) {
+          <!-- Reusable Item Card template -->
+          <ng-container
+            *ngTemplateOutlet="itemCard; context: { $implicit: item }"
+          ></ng-container>
+        }
+      </div>
+    </ng-container>
+  </nz-drawer>
+
+  <!-- FORM DRAWER (Slides from Bottom) -->
+  <nz-drawer
+    [nzVisible]="isDrawerVisible"
+    nzPlacement="bottom"
+    nzTitle="Log Material"
+    nzHeight="auto"
+    (nzOnClose)="closeDrawer()"
+  >
+    <ng-container *nzDrawerContent>
+      <form
+        nz-form
+        [formGroup]="materialForm"
+        (ngSubmit)="submitForm()"
+        nzLayout="vertical"
+      >
+        <!-- Hidden ID for edits -->
+        <input type="hidden" formControlName="id" />
+
+        <!-- Material Dropdown -->
+        <nz-form-item class="mb-4">
+          <nz-form-label nzRequired>Material Name</nz-form-label>
+          <nz-form-control nzErrorTip="Please select a material">
+            <nz-select
+              formControlName="name"
+              nzPlaceHolder="Select material"
+              nzSize="large"
+              class="w-full"
+            >
+              @for (mat of MATERIAL_OPTIONS; track mat) {
+                <nz-option [nzValue]="mat" [nzLabel]="mat"></nz-option>
+              }
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <!-- Qty and Price -->
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <nz-form-item class="mb-0">
+            <nz-form-label nzRequired>Quantity</nz-form-label>
+            <nz-form-control>
+              <nz-input-number
+                formControlName="qty"
+                [nzMin]="0.01"
+                class="w-full bg-neutral-800 border-neutral-700 text-white"
+                nzSize="large"
+              ></nz-input-number>
+            </nz-form-control>
+          </nz-form-item>
+
+          <nz-form-item class="mb-0">
+            <nz-form-label nzRequired>Unit Price (₹)</nz-form-label>
+            <nz-form-control>
+              <nz-input-number
+                formControlName="unitPrice"
+                [nzMin]="0"
+                class="w-full bg-neutral-800 border-neutral-700 text-white"
+                nzSize="large"
+              ></nz-input-number>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+
+        <!-- Auto-calculated Total Price -->
+        <nz-form-item class="mb-4">
+          <nz-form-label>Total Price</nz-form-label>
+          <nz-form-control>
+            <div
+              class="p-2 bg-neutral-800 border border-neutral-700 rounded-md text-emerald-400 font-semibold text-lg"
+            >
+              ₹ {{ materialForm.get("totalPrice")?.value | number: "1.2-2" }}
+            </div>
+          </nz-form-control>
+        </nz-form-item>
+
+        <!-- Builder Dropdown -->
+        <nz-form-item class="mb-4">
+          <nz-form-label nzRequired>Builder / Contractor</nz-form-label>
+          <nz-form-control nzErrorTip="Please select a builder">
+            <nz-select
+              formControlName="builderName"
+              nzPlaceHolder="Select builder"
+              nzSize="large"
+              class="w-full"
+            >
+              @for (builder of BUILDER_OPTIONS; track builder) {
+                <nz-option [nzValue]="builder" [nzLabel]="builder"></nz-option>
+              }
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <!-- Date Picker -->
+        <nz-form-item class="mb-6">
+          <nz-form-label nzRequired>Delivery Date</nz-form-label>
+          <nz-form-control>
+            <nz-date-picker
+              formControlName="deliveryDate"
+              class="w-full bg-neutral-800 border-neutral-700"
+              nzSize="large"
+            ></nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
+
+        <button
+          nz-button
+          nzType="primary"
+          nzBlock
+          nzSize="large"
+          class="mt-2 sticky bottom-4"
+        >
+          Save Material
+        </button>
+      </form>
+    </ng-container>
+  </nz-drawer>
+
+  <!-- REUSABLE CARD TEMPLATE -->
+  <ng-template #itemCard let-item>
+    <div
+      class="bg-neutral-800 p-4 rounded-xl border border-neutral-700 shadow-sm relative"
+    >
+      <div class="flex justify-between items-start mb-2 pr-8">
+        <h3 class="text-lg font-bold text-white m-0 truncate">
+          {{ item.name }}
+        </h3>
+        <span class="text-xs text-neutral-400 whitespace-nowrap">{{
+          item.deliveryDate | date: "MMM d, y"
+        }}</span>
+      </div>
+      <div class="mb-4">
+        <span
+          class="bg-neutral-700 text-neutral-300 text-xs px-2 py-1 rounded-md"
+        >
+          {{ item.qty }} × ₹{{ item.unitPrice | number: "1.0-0" }}
+        </span>
+      </div>
+      <div
+        class="flex justify-between items-end pt-3 border-t border-neutral-700"
+      >
+        <div>
+          <p class="text-[10px] text-neutral-500 uppercase m-0 mb-1">
+            Total Price
+          </p>
+          <p class="text-xl font-semibold text-emerald-400 m-0">
+            ₹{{ item.totalPrice | number: "1.2-2" }}
+          </p>
+        </div>
+        <div class="text-right">
+          <p class="text-[10px] text-neutral-500 uppercase m-0 mb-1">Builder</p>
+          <p class="text-sm text-neutral-200 m-0 truncate max-w-[120px]">
+            {{ item.builderName }}
+          </p>
+        </div>
+      </div>
+      <div class="absolute top-3 right-2 flex gap-2">
+        <button
+          (click)="openDrawer(item)"
+          class="text-neutral-400 hover:text-blue-400 bg-transparent border-none p-1"
+        >
+          <span nz-icon nzType="edit"></span>
+        </button>
+        <button
+          nz-popconfirm
+          nzPopconfirmTitle="Delete?"
+          nzPopconfirmPlacement="left"
+          (nzOnConfirm)="deleteMaterial(item.id!)"
+          class="text-neutral-400 hover:text-red-400 bg-transparent border-none p-1"
+        >
+          <span nz-icon nzType="delete"></span>
+        </button>
+      </div>
+    </div>
+  </ng-template>
+</div>

@@ -1,0 +1,115 @@
+<div class="p-4">
+  <h1 class="text-2xl font-bold text-white mb-6">Site Overview</h1>
+
+  <!-- Metrics Grid -->
+  <div class="grid grid-cols-2 gap-4 mb-8">
+    <!-- Material Spend Card -->
+    <div
+      class="bg-neutral-800 p-4 rounded-xl border border-neutral-700 shadow-sm flex flex-col justify-center"
+    >
+      <p class="text-[11px] text-neutral-400 uppercase tracking-wider mb-1 m-0">
+        Material Spend
+      </p>
+      <p class="text-2xl font-bold text-emerald-400 m-0">
+        ₹{{ totalMaterialCost | number: "1.0-0" }}
+      </p>
+    </div>
+
+    <!-- Ledger Transactions Card -->
+    <div
+      class="bg-neutral-800 p-4 rounded-xl border border-neutral-700 shadow-sm flex flex-col justify-center"
+    >
+      <p class="text-[11px] text-neutral-400 uppercase tracking-wider mb-1 m-0">
+        Ledger Total
+      </p>
+      <p class="text-2xl font-bold text-blue-400 m-0">
+        ₹{{ totalTransactions | number: "1.0-0" }}
+      </p>
+    </div>
+  </div>
+
+  <!-- Data Management / Backup -->
+  <div class="mb-8">
+    <h2 class="text-lg font-semibold text-neutral-300 mb-4">
+      Data Backup & Restore
+    </h2>
+
+    <div class="grid grid-cols-2 gap-3 mb-3">
+      <button
+        nz-button
+        nzType="default"
+        class="bg-neutral-800 border-neutral-700 text-neutral-300 hover:text-emerald-400 rounded-lg h-10 text-xs"
+        (click)="backup.exportMaterials()"
+      >
+        <span nz-icon nzType="download"></span> Export Materials
+      </button>
+      <button
+        nz-button
+        nzType="default"
+        class="bg-neutral-800 border-neutral-700 text-neutral-300 hover:text-orange-400 rounded-lg h-10 text-xs"
+        (click)="materialUpload.click()"
+      >
+        <span nz-icon nzType="upload"></span> Import Materials
+      </button>
+      <input
+        #materialUpload
+        type="file"
+        accept=".csv"
+        class="hidden"
+        (change)="onMaterialFileSelected($event)"
+      />
+    </div>
+
+    <div class="grid grid-cols-2 gap-3">
+      <button
+        nz-button
+        nzType="default"
+        class="bg-neutral-800 border-neutral-700 text-neutral-300 hover:text-blue-400 rounded-lg h-10 text-xs"
+        (click)="backup.exportTransactions()"
+      >
+        <span nz-icon nzType="download"></span> Export Ledger
+      </button>
+      <button
+        nz-button
+        nzType="default"
+        class="bg-neutral-800 border-neutral-700 text-neutral-300 hover:text-purple-400 rounded-lg h-10 text-xs"
+        (click)="transactionUpload.click()"
+      >
+        <span nz-icon nzType="upload"></span> Import Ledger
+      </button>
+      <input
+        #transactionUpload
+        type="file"
+        accept=".csv"
+        class="hidden"
+        (change)="onTransactionFileSelected($event)"
+      />
+    </div>
+  </div>
+
+  <!-- Unified Activity Timeline -->
+  <h2 class="text-lg font-semibold text-neutral-300 mb-4">Recent Activity</h2>
+
+  <div
+    class="bg-neutral-800 p-5 rounded-xl border border-neutral-700 shadow-sm"
+  >
+    <nz-timeline *ngIf="recentActivity.length > 0; else emptyState">
+      <nz-timeline-item
+        *ngFor="let item of recentActivity"
+        [nzColor]="item.color"
+      >
+        <p class="text-white font-semibold m-0 text-sm">{{ item.title }}</p>
+        <p class="text-neutral-400 text-xs mt-1 mb-1">{{ item.subtitle }}</p>
+        <p class="text-neutral-500 text-[10px] m-0">
+          {{ item.date | date: "MMM d, y, h:mm a" }}
+        </p>
+      </nz-timeline-item>
+    </nz-timeline>
+
+    <ng-template #emptyState>
+      <p class="text-neutral-500 text-sm m-0 text-center py-4">
+        No construction activity logged yet.
+      </p>
+    </ng-template>
+  </div>
+</div>
