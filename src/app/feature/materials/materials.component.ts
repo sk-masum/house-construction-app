@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   FormBuilder,
@@ -8,16 +8,16 @@ import {
 } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { DbService, Material } from '../../core/services/db.service';
+import flatpickr from 'flatpickr';
+import 'flatpickr/dist/flatpickr.min.css';
 
 import { NzDrawerModule } from 'ng-zorro-antd/drawer';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
-import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
-import { NzSelectModule } from 'ng-zorro-antd/select';
 
 @Component({
   selector: 'app-materials',
@@ -29,11 +29,9 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
     NzFormModule,
     NzInputModule,
     NzInputNumberModule,
-    NzDatePickerModule,
     NzButtonModule,
     NzIconModule,
     NzPopconfirmModule,
-    NzSelectModule,
   ],
   templateUrl: './materials.component.html',
 })
@@ -70,6 +68,9 @@ export class MaterialsComponent implements OnInit, OnDestroy {
   isDetailVisible = false;
   detailTitle = '';
   detailItems: Material[] = [];
+
+  // Flatpickr instance
+  private datepickerInstance: any;
 
   private formSub!: Subscription;
   private filterSub!: Subscription;
@@ -249,7 +250,10 @@ export class MaterialsComponent implements OnInit, OnDestroy {
   // --- Form CRUD ---
   openDrawer(material?: Material): void {
     if (material) {
-      this.materialForm.patchValue(material);
+      this.materialForm.patchValue({
+        ...material,
+        deliveryDate: new Date(material.deliveryDate),
+      });
     } else {
       this.materialForm.reset({
         qty: 1,
@@ -258,15 +262,73 @@ export class MaterialsComponent implements OnInit, OnDestroy {
       });
     }
     this.isDrawerVisible = true;
+    
+    setTimeout(() => {
+      this.initializeFlatpickr();
+    }, 100);
   }
 
   closeDrawer(): void {
     this.isDrawerVisible = false;
+    if (this.datepickerInstance) {
+      this.datepickerInstance.destroy();
+    }
+  }
+
+  private initializeFlatpickr(): void {
+    const dateInput = document.querySelector('#deliveryDateInput') as HTMLInputElement;
+    if (!dateInput) return;
+
+    if (this.datepickerInstance) {
+      this.datepickerInstance.destroy();
+    }
+
+    const currentDate = this.materialForm.get('deliveryDate')?.value;
+    
+    this.datepickerInstance = flatpickr(dateInput, {
+      mode: 'single',
+      dateFormat: 'Y-m-d',
+      defaultDate: currentDate || new Date(),
+      minDate: '1900-01-01',
+      maxDate: '2100-12-31',
+      static: true,
+      inline: false,
+      enableTime: false,
+      allowInput: true,
+      clickOpens: true,
+      disableMobile: false,
+      onChange: (selectedDates: Date[]) => {
+        if (selectedDates && selectedDates.length > 0) {
+          this.materialForm.patchValue({
+            deliveryDate: selectedDates[0],
+          });
+        }
+      },
+    });
+  }
+
+  private toDateInputFormat(date: Date): string {
+    const d = new Date(date);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  private toDateObject(dateString: string): Date {
+    const [year, month, day] = dateString.split('-').map(Number);
+    return new Date(year, month - 1, day);
   }
 
   async submitForm() {
     if (this.materialForm.valid) {
       const formValue = this.materialForm.getRawValue();
+      
+      // Flatpickr already stores as Date, but ensure it's a Date object
+      if (!(formValue.deliveryDate instanceof Date)) {
+        formValue.deliveryDate = new Date(formValue.deliveryDate);
+      }
+
       if (formValue.id) {
         await this.db.materials.put(formValue);
       } else {
@@ -277,7 +339,6 @@ export class MaterialsComponent implements OnInit, OnDestroy {
       this.closeDrawer();
       await this.loadMaterials();
 
-      // Update open drill-down view if active
       if (this.isDetailVisible) {
         this.updateDetailView(formValue.name, formValue.builderName);
       }

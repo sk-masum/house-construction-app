@@ -205,96 +205,136 @@
         <!-- Hidden ID for edits -->
         <input type="hidden" formControlName="id" />
 
-        <!-- Material Dropdown -->
-        <nz-form-item class="mb-4">
-          <nz-form-label nzRequired>Material Name</nz-form-label>
-          <nz-form-control nzErrorTip="Please select a material">
-            <nz-select
-              formControlName="name"
-              nzPlaceHolder="Select material"
-              nzSize="large"
-              class="w-full"
-            >
-              @for (mat of MATERIAL_OPTIONS; track mat) {
-                <nz-option [nzValue]="mat" [nzLabel]="mat"></nz-option>
-              }
-            </nz-select>
-          </nz-form-control>
-        </nz-form-item>
+        <!-- Material Dropdown (Native Select) -->
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-white mb-2">
+            Material Name <span class="text-red-500">*</span>
+          </label>
+          <select
+            formControlName="name"
+            class="w-full px-3 py-2 bg-neutral-800 border border-neutral-700 text-white rounded-md text-base focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 appearance-none cursor-pointer"
+          >
+            <option value="" disabled selected>Select material</option>
+            @for (mat of MATERIAL_OPTIONS; track mat) {
+              <option [value]="mat">{{ mat }}</option>
+            }
+          </select>
+          @if (
+            materialForm.get("name")?.hasError("required") &&
+            materialForm.get("name")?.touched
+          ) {
+            <p class="text-red-500 text-xs mt-1">Please select a material</p>
+          }
+        </div>
 
         <!-- Qty and Price -->
         <div class="grid grid-cols-2 gap-4 mb-4">
-          <nz-form-item class="mb-0">
-            <nz-form-label nzRequired>Quantity</nz-form-label>
-            <nz-form-control>
-              <nz-input-number
-                formControlName="qty"
-                [nzMin]="0.01"
-                class="w-full bg-neutral-800 border-neutral-700 text-white"
-                nzSize="large"
-              ></nz-input-number>
-            </nz-form-control>
-          </nz-form-item>
+          <div class="mb-0">
+            <label class="block text-sm font-medium text-white mb-2">
+              Quantity <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="number"
+              formControlName="qty"
+              min="0.01"
+              step="0.01"
+              class="w-full px-3 py-2 bg-neutral-800 border border-neutral-700 text-white rounded-md text-base focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+            />
+            @if (
+              materialForm.get("qty")?.hasError("required") &&
+              materialForm.get("qty")?.touched
+            ) {
+              <p class="text-red-500 text-xs mt-1">Quantity is required</p>
+            }
+            @if (materialForm.get("qty")?.hasError("min")) {
+              <p class="text-red-500 text-xs mt-1">Must be greater than 0</p>
+            }
+          </div>
 
-          <nz-form-item class="mb-0">
-            <nz-form-label nzRequired>Unit Price (₹)</nz-form-label>
-            <nz-form-control>
-              <nz-input-number
-                formControlName="unitPrice"
-                [nzMin]="0"
-                class="w-full bg-neutral-800 border-neutral-700 text-white"
-                nzSize="large"
-              ></nz-input-number>
-            </nz-form-control>
-          </nz-form-item>
+          <div class="mb-0">
+            <label class="block text-sm font-medium text-white mb-2">
+              Unit Price (₹) <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="number"
+              formControlName="unitPrice"
+              min="0"
+              step="0.01"
+              class="w-full px-3 py-2 bg-neutral-800 border border-neutral-700 text-white rounded-md text-base focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+            />
+            @if (
+              materialForm.get("unitPrice")?.hasError("required") &&
+              materialForm.get("unitPrice")?.touched
+            ) {
+              <p class="text-red-500 text-xs mt-1">Price is required</p>
+            }
+            @if (materialForm.get("unitPrice")?.hasError("min")) {
+              <p class="text-red-500 text-xs mt-1">Price cannot be negative</p>
+            }
+          </div>
         </div>
 
         <!-- Auto-calculated Total Price -->
-        <nz-form-item class="mb-4">
-          <nz-form-label>Total Price</nz-form-label>
-          <nz-form-control>
-            <div
-              class="p-2 bg-neutral-800 border border-neutral-700 rounded-md text-emerald-400 font-semibold text-lg"
-            >
-              ₹ {{ materialForm.get("totalPrice")?.value | number: "1.2-2" }}
-            </div>
-          </nz-form-control>
-        </nz-form-item>
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-white mb-2">
+            Total Price
+          </label>
+          <div
+            class="p-3 bg-neutral-800 border border-neutral-700 rounded-md text-emerald-400 font-semibold text-lg"
+          >
+            ₹ {{ materialForm.get("totalPrice")?.value | number: "1.2-2" }}
+          </div>
+        </div>
 
-        <!-- Builder Dropdown -->
-        <nz-form-item class="mb-4">
-          <nz-form-label nzRequired>Builder / Contractor</nz-form-label>
-          <nz-form-control nzErrorTip="Please select a builder">
-            <nz-select
-              formControlName="builderName"
-              nzPlaceHolder="Select builder"
-              nzSize="large"
-              class="w-full"
-            >
-              @for (builder of BUILDER_OPTIONS; track builder) {
-                <nz-option [nzValue]="builder" [nzLabel]="builder"></nz-option>
-              }
-            </nz-select>
-          </nz-form-control>
-        </nz-form-item>
+        <!-- Builder Dropdown (Native Select) -->
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-white mb-2">
+            Builder / Contractor <span class="text-red-500">*</span>
+          </label>
+          <select
+            formControlName="builderName"
+            class="w-full px-3 py-2 bg-neutral-800 border border-neutral-700 text-white rounded-md text-base focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 appearance-none cursor-pointer"
+          >
+            <option value="" disabled selected>Select builder</option>
+            @for (builder of BUILDER_OPTIONS; track builder) {
+              <option [value]="builder">{{ builder }}</option>
+            }
+          </select>
+          @if (
+            materialForm.get("builderName")?.hasError("required") &&
+            materialForm.get("builderName")?.touched
+          ) {
+            <p class="text-red-500 text-xs mt-1">Please select a builder</p>
+          }
+        </div>
 
-        <!-- Date Picker -->
-        <nz-form-item class="mb-6">
-          <nz-form-label nzRequired>Delivery Date</nz-form-label>
-          <nz-form-control>
-            <nz-date-picker
-              formControlName="deliveryDate"
-              class="w-full bg-neutral-800 border-neutral-700"
-              nzSize="large"
-            ></nz-date-picker>
-          </nz-form-control>
-        </nz-form-item>
+        <!-- Date Picker (Flatpickr) -->
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-white mb-2">
+            Delivery Date <span class="text-red-500">*</span>
+          </label>
+          <input
+            id="deliveryDateInput"
+            type="text"
+            formControlName="deliveryDate"
+            class="w-full px-3 py-2 bg-neutral-800 border border-neutral-700 text-white rounded-md text-base focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 cursor-pointer flatpickr-input"
+            placeholder="Select date"
+            readonly
+          />
+          @if (
+            materialForm.get("deliveryDate")?.hasError("required") &&
+            materialForm.get("deliveryDate")?.touched
+          ) {
+            <p class="text-red-500 text-xs mt-1">Please select a date</p>
+          }
+        </div>
 
         <button
           nz-button
           nzType="primary"
           nzBlock
           nzSize="large"
+          [disabled]="materialForm.invalid"
           class="theme-action-button mt-2 sticky bottom-4"
         >
           Save Material

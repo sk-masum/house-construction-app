@@ -1,0 +1,275 @@
+// iOS-friendly native form controls styling
+input[type="number"],
+input[type="date"],
+input[type="text"],
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+
+  // Ensure full width
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+
+  // iOS specific fixes
+  &[type="date"] {
+    padding-right: 2rem;
+
+    // iOS date picker fix - ensure text is visible
+    &::-webkit-calendar-picker-indicator {
+      cursor: pointer;
+      color: rgb(34, 197, 94);
+      margin-right: -0.5rem;
+    }
+  }
+
+  // Better touch target and visibility on iOS
+  font-size: 16px; // Prevents iOS zoom on focus
+  min-height: 44px; // Apple's recommended touch target size
+}
+
+// Flatpickr input specific styling
+.flatpickr-input {
+  display: block !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  max-width: 100% !important;
+}
+
+// Select-specific styling
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23A3E635' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 12px;
+  padding-right: 2.5rem;
+}
+
+// Additional iOS fixes
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+// Ensure proper focus states on iOS
+select:focus,
+input[type="date"]:focus,
+input[type="number"]:focus {
+  outline: none;
+  border-color: rgb(16, 185, 129);
+  box-shadow: 0 0 0 1px rgb(16, 185, 129);
+}
+
+// ════════════════════════════════════════════════════════════════════
+// FLATPICKR CUSTOM STYLING - Dark theme optimized
+// ════════════════════════════════════════════════════════════════════
+
+.flatpickr-calendar {
+  background: rgb(23, 23, 23); // neutral-900
+  border: 1px solid rgb(64, 64, 64); // neutral-700
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+
+  // Month/year header
+  .flatpickr-months {
+    background: rgb(31, 31, 31); // neutral-800
+    border-bottom: 1px solid rgb(64, 64, 64);
+  }
+
+  // Month text
+  .flatpickr-month {
+    color: rgb(255, 255, 255);
+    font-weight: 600;
+
+    .flatpickr-monthDropdown-months {
+      background: rgb(38, 38, 38);
+      border: 1px solid rgb(64, 64, 64);
+      color: rgb(255, 255, 255);
+
+      option {
+        background: rgb(38, 38, 38);
+        color: rgb(255, 255, 255);
+
+        &:hover,
+        &:checked {
+          background: rgb(16, 185, 129); // emerald-500
+          color: rgb(255, 255, 255);
+        }
+      }
+    }
+  }
+
+  // Navigation arrows
+  .flatpickr-prev-month,
+  .flatpickr-next-month {
+    color: rgb(16, 185, 129);
+
+    svg {
+      stroke: rgb(16, 185, 129);
+    }
+
+    &:hover {
+      color: rgb(5, 150, 105); // emerald-600
+
+      svg {
+        stroke: rgb(5, 150, 105);
+      }
+    }
+  }
+
+  // Day grid header (weekday names)
+  .flatpickr-weekdays {
+    background: rgb(38, 38, 38); // neutral-700
+    border-bottom: 1px solid rgb(64, 64, 64);
+
+    .flatpickr-weekday {
+      color: rgb(163, 230, 53); // lime-400 for accent
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+  }
+
+  // Days container
+  .flatpickr-days {
+    background: rgb(23, 23, 23);
+
+    // Individual day
+    .flatpickr-day {
+      color: rgb(209, 213, 219); // neutral-300
+      background: transparent;
+      border: none;
+      line-height: 2.5rem;
+      min-width: 2.5rem;
+      max-width: 2.5rem;
+      height: 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 0.375rem;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 150ms ease-in-out;
+
+      // Hover state
+      &:hover:not(.disabled):not(.prevMonthDay):not(.nextMonthDay) {
+        background: rgb(64, 64, 64); // neutral-700
+        color: rgb(255, 255, 255);
+      }
+
+      // Previous/next month days (grayed out)
+      &.prevMonthDay,
+      &.nextMonthDay {
+        color: rgb(107, 114, 128); // neutral-500
+      }
+
+      // Today
+      &.today {
+        background: rgb(34, 197, 94); // emerald-500 (softer)
+        color: rgb(255, 255, 255);
+        font-weight: 700;
+
+        &:hover {
+          background: rgb(16, 185, 129); // emerald-600
+        }
+      }
+
+      // Selected date
+      &.selected {
+        background: rgb(16, 185, 129); // emerald-500
+        color: rgb(255, 255, 255);
+        font-weight: 700;
+        box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.3);
+
+        &:hover {
+          background: rgb(5, 150, 105); // emerald-600
+          box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.3);
+        }
+      }
+
+      // Disabled state
+      &.disabled {
+        background: transparent;
+        color: rgb(107, 114, 128); // neutral-500
+        cursor: not-allowed;
+      }
+
+      // Range selection (if using date ranges)
+      &.inRange {
+        background: rgba(16, 185, 129, 0.2);
+        color: rgb(255, 255, 255);
+      }
+
+      // Start/end of range
+      &.startRange,
+      &.endRange {
+        background: rgb(16, 185, 129);
+        color: rgb(255, 255, 255);
+      }
+    }
+  }
+}
+
+// Footer area styling
+.flatpickr-calendar .flatpickr-innerContainer {
+  .flatpickr-rContainer {
+    color: rgb(209, 213, 219);
+  }
+}
+
+// Time inputs (if enabled)
+.flatpickr-time {
+  background: rgb(31, 31, 31);
+  border-top: 1px solid rgb(64, 64, 64);
+
+  .numInputWrapper {
+    span.arrowUp,
+    span.arrowDown {
+      color: rgb(16, 185, 129);
+
+      &:hover {
+        color: rgb(5, 150, 105);
+      }
+    }
+  }
+
+  input {
+    background: rgb(38, 38, 38);
+    color: rgb(255, 255, 255);
+    border: 1px solid rgb(64, 64, 64);
+
+    &:focus {
+      outline: none;
+      border-color: rgb(16, 185, 129);
+      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+    }
+  }
+}
+
+// Mobile view optimization
+@media (max-width: 640px) {
+  .flatpickr-calendar {
+    width: 100% !important;
+    left: 0 !important;
+    right: 0 !important;
+    margin: 0 auto;
+
+    .flatpickr-day {
+      min-width: calc(100% / 7);
+      max-width: calc(100% / 7);
+      flex: 0 0 calc(100% / 7);
+    }
+  }
+}
+
+// Prevent text selection on calendar
+.flatpickr-calendar {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+}
