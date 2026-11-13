@@ -235,6 +235,29 @@
       <ng-container *nzDrawerContent>
         <div class="flex flex-col gap-4 pb-10">
           @if (activeView === "builder") {
+            <div
+              class="flex justify-between items-center mb-4 bg-neutral-800 p-4 rounded-xl border border-neutral-700"
+            >
+              <div>
+                <p
+                  class="text-[10px] text-neutral-400 uppercase tracking-wider m-0 mb-1"
+                >
+                  Generate PDF
+                </p>
+                <h3 class="text-white font-bold m-0 text-sm">
+                  Account Statement
+                </h3>
+              </div>
+              <button
+                nz-button
+                nzType="primary"
+                nzShape="round"
+                (click)="shareBuilderLedger(detailTitle)"
+                class="bg-[#25D366] hover:bg-[#1DA851] border-none shadow-md flex items-center gap-2"
+              >
+                <span nz-icon nzType="share-alt"></span> Share Hisab
+              </button>
+            </div>
             <!-- NEW: Grouped Log View for Builders -->
             @for (group of builderDetailGroups; track group.materialName) {
               <div class="mb-4">

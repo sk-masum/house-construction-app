@@ -24,6 +24,8 @@
     "chart.js": "^4.6.1",
     "dexie": "^4.4.7",
     "flatpickr": "^4.6.13",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.9",
     "ng-zorro-antd": "^18.2.1",
     "ng2-charts": "^11.0.0",
     "papaparse": "^5.7.1",
