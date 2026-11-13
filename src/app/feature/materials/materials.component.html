@@ -18,7 +18,7 @@
   <!-- [Your existing filterForm div goes here] -->
 
   <!-- View Switcher (Using Centralized TabSwitcherComponent) -->
-  <app-tab-switcher 
+  <app-tab-switcher
     [tabs]="tabs"
     [activeValue]="activeView"
     (onTabChange)="onTabChange($event)"
@@ -155,11 +155,78 @@
   >
     <ng-container *nzDrawerContent>
       <div class="flex flex-col gap-4 pb-10">
-        @for (item of detailItems; track item.id) {
-          <!-- Reusable Item Card template -->
-          <ng-container
-            *ngTemplateOutlet="itemCard; context: { $implicit: item }"
-          ></ng-container>
+        @if (activeView === "builder") {
+          <!-- NEW: Grouped Log View for Builders -->
+          @for (group of builderDetailGroups; track group.materialName) {
+            <div class="mb-4">
+              <!-- Category Header -->
+              <div
+                class="flex justify-between items-end border-b border-neutral-700 pb-2 mb-3"
+              >
+                <h3 class="text-lg font-bold text-emerald-400 m-0">
+                  {{ group.materialName }}
+                </h3>
+                <p
+                  class="text-[10px] text-neutral-400 m-0 uppercase tracking-wider"
+                >
+                  Total:
+                  <span class="text-white font-semibold text-sm"
+                    >₹{{ group.totalPrice | number: "1.0-0" }}</span
+                  >
+                </p>
+              </div>
+
+              <!-- Chronological Logs -->
+              <div class="flex flex-col gap-2">
+                @for (item of group.items; track item.id) {
+                  <div
+                    class="bg-neutral-800 p-3 rounded-lg border border-neutral-700 flex justify-between items-center relative pr-16"
+                  >
+                    <div>
+                      <!-- E.g., Oct 12 - 200 pcs -->
+                      <p class="text-white font-medium text-sm m-0">
+                        {{ item.deliveryDate | date: "MMM d" }}
+                        <span class="text-neutral-500 mx-1">-</span>
+                        {{ item.qty }} unit
+                      </p>
+                    </div>
+                    <div class="text-right">
+                      <!-- E.g., ₹ 4,500 -->
+                      <p class="text-emerald-400 font-semibold m-0 text-sm">
+                        ₹{{ item.totalPrice | number: "1.0-0" }}
+                      </p>
+                    </div>
+
+                    <!-- Edit / Delete actions -->
+                    <div class="absolute right-2 flex gap-1">
+                      <button
+                        (click)="openDrawer(item)"
+                        class="text-neutral-400 hover:text-blue-400 bg-transparent border-none p-1 cursor-pointer"
+                      >
+                        <span nz-icon nzType="edit"></span>
+                      </button>
+                      <button
+                        nz-popconfirm
+                        nzPopconfirmTitle="Delete?"
+                        nzPopconfirmPlacement="left"
+                        (nzOnConfirm)="deleteMaterial(item.id!)"
+                        class="text-neutral-400 hover:text-red-400 bg-transparent border-none p-1 cursor-pointer"
+                      >
+                        <span nz-icon nzType="delete"></span>
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        } @else {
+          @for (item of detailItems; track item.id) {
+            <!-- Reusable Item Card template -->
+            <ng-container
+              *ngTemplateOutlet="itemCard; context: { $implicit: item }"
+            ></ng-container>
+          }
         }
       </div>
     </ng-container>
@@ -314,7 +381,10 @@
           nzSize="large"
           [disabled]="materialForm.invalid"
           class="theme-action-button mt-4 sticky bottom-4"
-          style="padding-bottom: calc(0.5rem + env(safe-area-inset-bottom)); margin-bottom: calc(env(safe-area-inset-bottom))"
+          style="
+            padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
+            margin-bottom: calc(env(safe-area-inset-bottom));
+          "
         >
           Save Material
         </button>
@@ -324,7 +394,7 @@
 
   <!-- REUSABLE CARD TEMPLATE -->
   <ng-template #itemCard let-item>
-    <div class="surface-card p-4 rounded-xl relative">
+    <!-- <div class="surface-card p-4 rounded-xl relative">
       <div class="flex justify-between items-start mb-2 pr-12">
         <h3 class="text-lg font-bold text-white m-0 truncate">
           {{ item.name }}
@@ -375,6 +445,11 @@
           <span nz-icon nzType="delete"></span>
         </button>
       </div>
-    </div>
+    </div> -->
+    <app-material-card
+      [item]="item"
+      (openDrawerEvent)="openDrawer($event)"
+      (deleteMaterialEvent)="deleteMaterial($event)"
+    />
   </ng-template>
 </div>

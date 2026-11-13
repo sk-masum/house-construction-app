@@ -6,6 +6,7 @@ import {
   ViewChild,
   ElementRef,
 } from '@angular/core';
+import { MaterialCardComponent } from './components/material-card/material-card.component';
 import { CommonModule } from '@angular/common';
 import {
   FormBuilder,
@@ -16,7 +17,10 @@ import {
 import { Subscription } from 'rxjs';
 import { DbService, Material } from '../../core/services/db.service';
 import { FlatpickrUtils } from '../../shared/utils/flatpickr.utils';
-import { TabSwitcherComponent, TabConfig } from '../../shared/components/tab-switcher.component';
+import {
+  TabSwitcherComponent,
+  TabConfig,
+} from '../../shared/components/tab-switcher.component';
 import 'flatpickr/dist/flatpickr.min.css';
 
 import { NzDrawerModule } from 'ng-zorro-antd/drawer';
@@ -41,6 +45,7 @@ import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
     NzButtonModule,
     NzIconModule,
     NzPopconfirmModule,
+    MaterialCardComponent,
   ],
   templateUrl: './materials.component.html',
 })
@@ -58,7 +63,7 @@ export class MaterialsComponent implements OnInit, OnDestroy {
     '7x7 Ring',
   ];
   readonly BUILDER_OPTIONS = ['SS', 'Nice', 'KGN'];
-  
+
   readonly tabs: TabConfig[] = [
     { label: 'By Date', value: 'date' },
     { label: 'By Material', value: 'material' },
@@ -86,6 +91,7 @@ export class MaterialsComponent implements OnInit, OnDestroy {
   isDetailVisible = false;
   detailTitle = '';
   detailItems: Material[] = [];
+  builderDetailGroups: any[] = [];
 
   // Flatpickr instance
   private datepickerInstance: any;
@@ -263,6 +269,7 @@ export class MaterialsComponent implements OnInit, OnDestroy {
     this.detailTitle = title;
     this.detailItems = items;
     this.isDetailVisible = true;
+    this.processDetailGroups();
   }
 
   closeDetail() {
@@ -300,7 +307,7 @@ export class MaterialsComponent implements OnInit, OnDestroy {
     this.datepickerInstance = FlatpickrUtils.initializeDatePicker(
       this.materialForm,
       'deliveryDateInput',
-      'deliveryDate'
+      'deliveryDate',
     );
   }
 
@@ -354,6 +361,7 @@ export class MaterialsComponent implements OnInit, OnDestroy {
       this.detailItems = group ? group.items : [];
     }
 
+    this.processDetailGroups();
     this.cdr.detectChanges();
   }
 
@@ -364,6 +372,41 @@ export class MaterialsComponent implements OnInit, OnDestroy {
 
   resetFilters(): void {
     this.filterForm.reset({ materials: [], builders: [], dateRange: [] });
+  }
+
+  processDetailGroups() {
+    if (this.activeView === 'builder') {
+      const map = new Map<string, any>();
+
+      for (const item of this.detailItems) {
+        if (!map.has(item.name)) {
+          map.set(item.name, {
+            materialName: item.name,
+            totalQty: 0,
+            totalPrice: 0,
+            items: [],
+          });
+        }
+        const g = map.get(item.name);
+        g.totalQty += item.qty;
+        g.totalPrice += item.totalPrice;
+        g.items.push(item);
+      }
+
+      // Sort items inside each group by Date (newest first)
+      for (const group of map.values()) {
+        group.items.sort(
+          (a: any, b: any) =>
+            new Date(b.deliveryDate).getTime() -
+            new Date(a.deliveryDate).getTime(),
+        );
+      }
+
+      // Sort the categories themselves by total price (highest first)
+      this.builderDetailGroups = Array.from(map.values()).sort(
+        (a, b) => b.totalPrice - a.totalPrice,
+      );
+    }
   }
 
   ngOnDestroy(): void {
