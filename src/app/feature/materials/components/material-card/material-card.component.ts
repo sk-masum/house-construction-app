@@ -19,6 +19,7 @@ import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 })
 export class MaterialCardComponent {
   @Input() item!: any;
+  @Input() view!: string;
   @Output() openDrawerEvent = new EventEmitter<any>();
   @Output() deleteMaterialEvent = new EventEmitter<number>();
 

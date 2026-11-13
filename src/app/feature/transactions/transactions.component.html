@@ -15,7 +15,7 @@
   </div>
 
   <!-- View Switcher (Using Centralized TabSwitcherComponent) -->
-  <app-tab-switcher 
+  <app-tab-switcher
     [tabs]="tabs"
     [activeValue]="activeView"
     (onTabChange)="onTabChange($event)"
@@ -80,7 +80,7 @@
       }
       @for (group of receiverGroups; track group.name) {
         <div
-          (click)="openDetail(group.name, group.items)"
+          (click)="openDetail(group.name, 'receiver')"
           class="surface-card surface-card-interactive p-4 rounded-xl flex justify-between items-center transition-colors cursor-pointer"
         >
           <div>
@@ -149,7 +149,11 @@
               min="1"
               placeholder="Enter amount"
               class="w-full px-3 py-2 bg-neutral-800 border border-neutral-700 text-white rounded text-base"
-              style="appearance: none; -webkit-appearance: none; -moz-appearance: textfield;"
+              style="
+                appearance: none;
+                -webkit-appearance: none;
+                -moz-appearance: textfield;
+              "
             />
           </nz-form-control>
         </nz-form-item>
@@ -173,7 +177,11 @@
               <select
                 formControlName="receiver"
                 class="w-full px-3 py-2 bg-neutral-800 border border-neutral-700 text-white rounded text-base"
-                style="appearance: none; -webkit-appearance: none; -moz-appearance: none;"
+                style="
+                  appearance: none;
+                  -webkit-appearance: none;
+                  -moz-appearance: none;
+                "
               >
                 <option value="">Select receiver</option>
                 @for (rec of RECEIVER_OPTIONS; track rec) {
@@ -202,7 +210,9 @@
           nzBlock
           nzSize="large"
           class="theme-action-button mt-4 sticky bottom-4"
-          [style.paddingBottom.px]="'calc(0.5rem + env(safe-area-inset-bottom))'"
+          [style.paddingBottom.px]="
+            'calc(0.5rem + env(safe-area-inset-bottom))'
+          "
         >
           Save Transaction
         </button>
@@ -212,9 +222,7 @@
 
   <!-- REUSABLE TRANSACTION CARD TEMPLATE -->
   <ng-template #itemCard let-item>
-    <div
-      class="surface-card p-4 rounded-xl relative"
-    >
+    <div class="surface-card p-4 rounded-xl relative">
       <div
         class="flex justify-between items-end border-b border-neutral-700 pb-3 mb-3 pr-8"
       >

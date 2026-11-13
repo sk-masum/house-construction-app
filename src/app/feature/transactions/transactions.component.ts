@@ -8,7 +8,10 @@ import {
 } from '@angular/forms';
 import { DbService, Transaction } from '../../core/services/db.service';
 import { FlatpickrUtils } from '../../shared/utils/flatpickr.utils';
-import { TabSwitcherComponent, TabConfig } from '../../shared/components/tab-switcher.component';
+import {
+  TabSwitcherComponent,
+  TabConfig,
+} from '../../shared/components/tab-switcher.component';
 import 'flatpickr/dist/flatpickr.min.css';
 
 import { NzDrawerModule } from 'ng-zorro-antd/drawer';
@@ -38,11 +41,14 @@ import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 })
 export class TransactionsComponent implements OnInit {
   readonly RECEIVER_OPTIONS = ['SS', 'Nice', 'KGN', 'Sukhchand'];
-  
+
   readonly tabs: TabConfig[] = [
     { label: 'By Date', value: 'date' },
     { label: 'By Receiver', value: 'receiver' },
   ];
+
+  currentSqlFilters: any = {};
+  isLoading = false;
 
   // Form & View States
   isDrawerVisible = false;
@@ -88,50 +94,42 @@ export class TransactionsComponent implements OnInit {
   }
 
   async loadTransactions() {
-    this.rawTransactions = await this.db.getAllTransactions();
-    this.applyFilters();
+    await this.applyFilters();
   }
 
-  applyFilters(): void {
-    let filtered = [...this.rawTransactions];
+  async applyFilters() {
+    this.isLoading = true;
+    this.cdr.detectChanges();
 
-    // Apply Sort
-    filtered.sort((a, b) => {
-      const dateA = new Date(a.dateTime).getTime();
-      const dateB = new Date(b.dateTime).getTime();
-      return this.sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
-    });
+    // Set up current filters (currently just sortOrder, but ready for a filterForm if you add one)
+    this.currentSqlFilters = {
+      sortOrder: this.sortOrder,
+    };
 
-    this.displayTransactions = filtered;
-    this.buildGroups();
+    // Fetch the detailed list AND the summary aggregations concurrently
+    const [display, receiverAgg] = await Promise.all([
+      this.db.getFilteredTransactions(this.currentSqlFilters),
+      this.db.getReceiverSummaries(this.currentSqlFilters),
+    ]);
+
+    this.displayTransactions = display;
+    this.receiverGroups = receiverAgg;
+
+    this.buildDateGroups(); // Group the flat list for the Date timeline UI
+
+    this.isLoading = false;
+    this.cdr.detectChanges();
   }
 
-  buildGroups(): void {
+  buildDateGroups(): void {
     const dateMap = new Map<string, any>();
-    const receiverMap = new Map<string, any>();
-
     for (const item of this.displayTransactions) {
-      // 1. Group by Receiver
-      if (!receiverMap.has(item.receiver)) {
-        receiverMap.set(item.receiver, {
-          name: item.receiver,
-          totalAmount: 0,
-          count: 0,
-          items: [],
-        });
-      }
-      const rGroup = receiverMap.get(item.receiver);
-      rGroup.totalAmount += item.amount;
-      rGroup.count++;
-      rGroup.items.push(item);
-
-      // 2. Group by Date
       const d = new Date(item.dateTime);
       const dateKey = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 
       if (!dateMap.has(dateKey)) {
         dateMap.set(dateKey, {
-          dateKey: dateKey,
+          dateKey,
           displayDate: item.dateTime,
           totalAmount: 0,
           count: 0,
@@ -143,18 +141,8 @@ export class TransactionsComponent implements OnInit {
       dGroup.count++;
       dGroup.items.push(item);
     }
-
-    this.receiverGroups = Array.from(receiverMap.values()).sort(
-      (a, b) => b.totalAmount - a.totalAmount,
-    );
-
-    this.dateGroups = Array.from(dateMap.values()).sort((a, b) => {
-      const timeA = new Date(a.displayDate).getTime();
-      const timeB = new Date(b.displayDate).getTime();
-      return this.sortOrder === 'desc' ? timeB - timeA : timeA - timeB;
-    });
-
-    this.cdr.detectChanges(); // Instantly update UI
+    // They are already sorted by SQL, so just convert to array
+    this.dateGroups = Array.from(dateMap.values());
   }
 
   // --- Navigation & Drill Down ---
@@ -166,23 +154,29 @@ export class TransactionsComponent implements OnInit {
     this.setView(value as 'date' | 'receiver');
   }
 
-  openDetail(title: string, items: Transaction[]) {
+  async openDetail(title: string, type: 'receiver') {
     this.detailTitle = title;
-    this.detailItems = items;
     this.isDetailVisible = true;
+    this.detailItems = []; // Clear for instant UI feedback
+    this.cdr.detectChanges();
+
+    const drillDownFilters = { ...this.currentSqlFilters };
+    if (type === 'receiver') drillDownFilters.receivers = [title];
+
+    this.detailItems = await this.db.getFilteredTransactions(drillDownFilters);
+    this.cdr.detectChanges();
   }
 
   closeDetail() {
     this.isDetailVisible = false;
   }
 
-  private updateDetailView() {
+  private async updateDetailView() {
+    const drillDownFilters = { ...this.currentSqlFilters };
     if (this.activeView === 'receiver') {
-      const group = this.receiverGroups.find(
-        (g) => g.name === this.detailTitle,
-      );
-      this.detailItems = group ? group.items : [];
+      drillDownFilters.receivers = [this.detailTitle];
     }
+    this.detailItems = await this.db.getFilteredTransactions(drillDownFilters);
     this.cdr.detectChanges();
   }
 
@@ -207,8 +201,12 @@ export class TransactionsComponent implements OnInit {
     if (this.transactionForm.valid) {
       const formValue = this.transactionForm.getRawValue();
 
+      if (!(formValue.dateTime instanceof Date)) {
+        formValue.dateTime = new Date(formValue.dateTime);
+      }
+
       if (formValue.id) {
-        await this.db.transactions.put(formValue);
+        await this.db.updateTransaction(formValue);
       } else {
         delete formValue.id;
         await this.db.addTransaction(formValue);
@@ -218,7 +216,7 @@ export class TransactionsComponent implements OnInit {
       await this.loadTransactions();
 
       if (this.isDetailVisible) {
-        this.updateDetailView();
+        await this.updateDetailView();
       }
     }
   }
@@ -229,7 +227,7 @@ export class TransactionsComponent implements OnInit {
       await this.loadTransactions();
 
       if (this.isDetailVisible) {
-        this.detailItems = this.detailItems.filter((i) => i.id !== id);
+        await this.updateDetailView();
         if (this.detailItems.length === 0) this.closeDetail();
       }
     }
@@ -240,8 +238,7 @@ export class TransactionsComponent implements OnInit {
     this.datetimePickerInstance = FlatpickrUtils.initializeDatetimePicker(
       this.transactionForm,
       'datetimeInput',
-      'dateTime'
+      'dateTime',
     );
   }
 }
-

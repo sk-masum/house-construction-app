@@ -1,11 +1,10 @@
 <div class="surface-card p-4 rounded-xl relative">
   <div class="flex justify-between items-start mb-2 pr-12">
     <h3 class="text-lg font-bold text-white m-0 truncate">
-      {{ item.deliveryDate | date: "MMM d, y" }}
+      {{
+        view === "dateList" ? item.name : (item.deliveryDate | date: "MMM d, y")
+      }}
     </h3>
-    <!-- <span class="text-xs text-neutral-400 whitespace-nowrap">{{
-      item.deliveryDate | date: "MMM d, y"
-    }}</span> -->
   </div>
   <div class="mb-4">
     <span class="bg-neutral-700 text-neutral-300 text-xs px-2 py-1 rounded-md">

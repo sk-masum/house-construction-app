@@ -1,455 +1,489 @@
-<div class="p-4">
-  <!-- Header & Add Button -->
-  <div class="flex justify-between items-center mb-4">
-    <h1 class="text-2xl font-bold m-0 text-white">Materials</h1>
-    <button
-      nz-button
-      nzType="primary"
-      nzShape="round"
-      class="theme-action-button"
-      (click)="openDrawer()"
-    >
-      <span nz-icon nzType="plus"></span>
-      <span>Add</span>
-    </button>
+@if (isLoading) {
+  <div class="flex justify-center items-center py-20">
+    <nz-spin nzSimple nzSize="large"></nz-spin>
   </div>
-
-  <!-- Advanced Filter Bar (Hidden for brevity, keep your existing one here) -->
-  <!-- [Your existing filterForm div goes here] -->
-
-  <!-- View Switcher (Using Centralized TabSwitcherComponent) -->
-  <app-tab-switcher
-    [tabs]="tabs"
-    [activeValue]="activeView"
-    (onTabChange)="onTabChange($event)"
-    class="mb-6"
-  ></app-tab-switcher>
-
-  <!-- MAIN CONTENT AREA -->
-
-  <!-- VIEW 1: BY DATE (Grouped List) -->
-  @if (activeView === "date") {
-    <div class="flex flex-col gap-8">
-      @if (dateGroups.length === 0) {
-        <div class="text-center text-neutral-500 mt-10">
-          <span nz-icon nzType="inbox" class="text-4xl mb-2"></span>
-          <p>No materials found.</p>
-        </div>
-      } @else {
-        @for (group of dateGroups; track group.dateKey) {
-          <div>
-            <!-- Date Group Header -->
-            <div
-              class="date-group-header flex justify-between items-end mb-4 border-b border-neutral-700 pb-3 sticky top-[env(safe-area-inset-top)] z-20 -mx-4 px-4 pt-3 shadow-sm"
-            >
-              <div>
-                <h2 class="text-lg font-bold text-white m-0">
-                  {{ group.displayDate | date: "fullDate" }}
-                </h2>
-                <p class="text-xs text-neutral-400 m-0">
-                  {{ group.count }} deliveries
-                </p>
-              </div>
-              <div class="text-right">
-                <p
-                  class="text-[10px] text-neutral-500 uppercase tracking-wider m-0 mb-1"
-                >
-                  Daily Total
-                </p>
-                <p class="text-emerald-400 font-semibold m-0 text-base">
-                  ₹{{ group.totalPrice | number: "1.2-2" }}
-                </p>
-              </div>
-            </div>
-
-            <!-- Group Items (Cards) -->
-            <div class="flex flex-col gap-4">
-              @for (item of group.items; track item.id) {
-                <!-- Uses your existing Reusable Item Card template -->
-                <ng-container
-                  *ngTemplateOutlet="itemCard; context: { $implicit: item }"
-                ></ng-container>
-              }
-            </div>
-          </div>
-        }
-      }
+} @else {
+  <div class="p-4">
+    <!-- Header & Add Button -->
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="text-2xl font-bold m-0 text-white">Materials</h1>
+      <button
+        nz-button
+        nzType="primary"
+        nzShape="round"
+        class="theme-action-button"
+        (click)="openDrawer()"
+      >
+        <span nz-icon nzType="plus"></span>
+        <span>Add</span>
+      </button>
     </div>
-  }
 
-  <!-- VIEW 2: BY MATERIAL (Grid Summary) -->
-  @if (activeView === "material") {
-    <div class="grid grid-cols-2 gap-3">
-      @if (materialGroups.length === 0) {
-        <div class="col-span-2 text-center text-neutral-500 mt-10">
-          <p>No materials found.</p>
-        </div>
-      }
-      @for (group of materialGroups; track group.name) {
-        <div
-          (click)="openDetail(group.name, group.items)"
-          class="surface-card surface-card-interactive p-4 rounded-xl flex flex-col justify-between active:scale-95 transition-transform cursor-pointer"
-        >
-          <div class="mb-3">
-            <h3 class="text-lg font-bold text-emerald-400 m-0 truncate">
-              {{ group.name }}
-            </h3>
-            <p class="text-xs text-neutral-400 m-0">{{ group.count }} Logs</p>
-          </div>
-          <div>
-            <p class="text-[10px] text-neutral-500 uppercase m-0 mb-1">
-              Total Spent
-            </p>
-            <p class="text-lg font-semibold text-white m-0">
-              ₹{{ group.totalPrice | number: "1.0-0" }}
-            </p>
-          </div>
-        </div>
-      }
-    </div>
-  }
+    <!-- Advanced Filter Bar (Hidden for brevity, keep your existing one here) -->
+    <!-- [Your existing filterForm div goes here] -->
 
-  <!-- VIEW 3: BY BUILDER (List Summary) -->
-  @if (activeView === "builder") {
-    <div class="flex flex-col gap-3">
-      @if (builderGroups.length === 0) {
-        <div class="text-center text-neutral-500 mt-10">
-          <p>No builders found.</p>
-        </div>
-      }
-      @for (group of builderGroups; track group.name) {
-        <div
-          (click)="openDetail(group.name, group.items)"
-          class="surface-card surface-card-interactive p-4 rounded-xl flex justify-between items-center transition-colors cursor-pointer"
-        >
-          <div>
-            <h3 class="text-lg font-bold text-blue-400 m-0">
-              {{ group.name }}
-            </h3>
-            <p class="text-xs text-neutral-400 m-0">
-              {{ group.count }} Deliveries
-            </p>
-          </div>
-          <div class="text-right">
-            <p class="text-lg font-semibold text-white m-0">
-              ₹{{ group.totalPrice | number: "1.0-0" }}
-            </p>
-            <span
-              nz-icon
-              nzType="right"
-              class="text-neutral-500 text-xs ml-2"
-            ></span>
-          </div>
-        </div>
-      }
-    </div>
-  }
+    <!-- View Switcher (Using Centralized TabSwitcherComponent) -->
+    <app-tab-switcher
+      [tabs]="tabs"
+      [activeValue]="activeView"
+      (onTabChange)="onTabChange($event)"
+      class="mb-6"
+    ></app-tab-switcher>
 
-  <!-- DRILL-DOWN DETAIL DRAWER (Slides from Right) -->
-  <nz-drawer
-    [nzVisible]="isDetailVisible"
-    nzPlacement="right"
-    [nzWidth]="'100%'"
-    [nzTitle]="detailTitle + ' History'"
-    (nzOnClose)="closeDetail()"
-  >
-    <ng-container *nzDrawerContent>
-      <div class="flex flex-col gap-4 pb-10">
-        @if (activeView === "builder") {
-          <!-- NEW: Grouped Log View for Builders -->
-          @for (group of builderDetailGroups; track group.materialName) {
-            <div class="mb-4">
-              <!-- Category Header -->
+    <!-- MAIN CONTENT AREA -->
+
+    <!-- VIEW 1: BY DATE (Grouped List) -->
+    @if (activeView === "date") {
+      <div class="flex flex-col gap-8">
+        @if (dateGroups.length === 0) {
+          <div class="text-center text-neutral-500 mt-10">
+            <span nz-icon nzType="inbox" class="text-4xl mb-2"></span>
+            <p>No materials found.</p>
+          </div>
+        } @else {
+          @for (group of dateGroups; track group.dateKey) {
+            <div>
+              <!-- Date Group Header -->
               <div
-                class="flex justify-between items-end border-b border-neutral-700 pb-2 mb-3"
+                class="date-group-header flex justify-between items-end mb-4 border-b border-neutral-700 pb-3 sticky top-[env(safe-area-inset-top)] z-20 -mx-4 px-4 pt-3 shadow-sm"
               >
-                <h3 class="text-lg font-bold text-emerald-400 m-0">
-                  {{ group.materialName }}
-                </h3>
-                <p
-                  class="text-[10px] text-neutral-400 m-0 uppercase tracking-wider"
-                >
-                  Total:
-                  <span class="text-white font-semibold text-sm"
-                    >₹{{ group.totalPrice | number: "1.0-0" }}</span
+                <div>
+                  <h2 class="text-lg font-bold text-white m-0">
+                    {{ group.displayDate | date: "fullDate" }}
+                  </h2>
+                  <p class="text-xs text-neutral-400 m-0">
+                    {{ group.count }} deliveries
+                  </p>
+                </div>
+                <div class="text-right">
+                  <p
+                    class="text-[10px] text-neutral-500 uppercase tracking-wider m-0 mb-1"
                   >
-                </p>
+                    Daily Total
+                  </p>
+                  <p class="text-emerald-400 font-semibold m-0 text-base">
+                    ₹{{ group.totalPrice | number: "1.2-2" }}
+                  </p>
+                </div>
               </div>
 
-              <!-- Chronological Logs -->
-              <div class="flex flex-col gap-2">
+              <!-- Group Items (Cards) -->
+              <div class="flex flex-col gap-4">
                 @for (item of group.items; track item.id) {
-                  <div
-                    class="bg-neutral-800 p-3 rounded-lg border border-neutral-700 flex justify-between items-center relative pr-16"
-                  >
-                    <div>
-                      <!-- E.g., Oct 12 - 200 pcs -->
-                      <p class="text-white font-medium text-sm m-0">
-                        {{ item.deliveryDate | date: "MMM d" }}
-                        <span class="text-neutral-500 mx-1">-</span>
-                        {{ item.qty }} unit
-                      </p>
-                    </div>
-                    <div class="text-right">
-                      <!-- E.g., ₹ 4,500 -->
-                      <p class="text-emerald-400 font-semibold m-0 text-sm">
-                        ₹{{ item.totalPrice | number: "1.0-0" }}
-                      </p>
-                    </div>
-
-                    <!-- Edit / Delete actions -->
-                    <div class="absolute right-2 flex gap-1">
-                      <button
-                        (click)="openDrawer(item)"
-                        class="text-neutral-400 hover:text-blue-400 bg-transparent border-none p-1 cursor-pointer"
-                      >
-                        <span nz-icon nzType="edit"></span>
-                      </button>
-                      <button
-                        nz-popconfirm
-                        nzPopconfirmTitle="Delete?"
-                        nzPopconfirmPlacement="left"
-                        (nzOnConfirm)="deleteMaterial(item.id!)"
-                        class="text-neutral-400 hover:text-red-400 bg-transparent border-none p-1 cursor-pointer"
-                      >
-                        <span nz-icon nzType="delete"></span>
-                      </button>
-                    </div>
-                  </div>
+                  <!-- Uses your existing Reusable Item Card template -->
+                  <ng-container
+                    *ngTemplateOutlet="
+                      itemCard;
+                      context: { $implicit: item, view: 'dateList' }
+                    "
+                  ></ng-container>
                 }
               </div>
             </div>
           }
-        } @else {
-          @for (item of detailItems; track item.id) {
-            <!-- Reusable Item Card template -->
-            <ng-container
-              *ngTemplateOutlet="itemCard; context: { $implicit: item }"
-            ></ng-container>
-          }
         }
       </div>
-    </ng-container>
-  </nz-drawer>
+    }
 
-  <!-- FORM DRAWER (Slides from Bottom) -->
-  <nz-drawer
-    [nzVisible]="isDrawerVisible"
-    nzPlacement="bottom"
-    nzTitle="Log Material"
-    nzHeight="auto"
-    (nzOnClose)="closeDrawer()"
-  >
-    <ng-container *nzDrawerContent>
-      <form
-        nz-form
-        [formGroup]="materialForm"
-        (ngSubmit)="submitForm()"
-        nzLayout="vertical"
-      >
-        <!-- Hidden ID for edits -->
-        <input type="hidden" formControlName="id" />
-
-        <!-- Material Dropdown (Native Select) -->
-        <div class="mb-4">
-          <label class="block text-sm font-medium text-white mb-2">
-            Material Name <span class="text-red-500">*</span>
-          </label>
-          <select
-            formControlName="name"
-            class="w-full px-3 py-2 bg-neutral-800 border border-neutral-700 text-white rounded-md text-base focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 appearance-none cursor-pointer"
-          >
-            <option value="" disabled selected>Select material</option>
-            @for (mat of MATERIAL_OPTIONS; track mat) {
-              <option [value]="mat">{{ mat }}</option>
-            }
-          </select>
-          @if (
-            materialForm.get("name")?.hasError("required") &&
-            materialForm.get("name")?.touched
-          ) {
-            <p class="text-red-500 text-xs mt-1">Please select a material</p>
-          }
-        </div>
-
-        <!-- Qty and Price -->
-        <div class="grid grid-cols-2 gap-4 mb-4">
-          <div class="mb-0">
-            <label class="block text-sm font-medium text-white mb-2">
-              Quantity <span class="text-red-500">*</span>
-            </label>
-            <input
-              type="number"
-              formControlName="qty"
-              min="0.01"
-              step="0.01"
-              class="w-full px-3 py-2 bg-neutral-800 border border-neutral-700 text-white rounded-md text-base focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
-            />
-            @if (
-              materialForm.get("qty")?.hasError("required") &&
-              materialForm.get("qty")?.touched
-            ) {
-              <p class="text-red-500 text-xs mt-1">Quantity is required</p>
-            }
-            @if (materialForm.get("qty")?.hasError("min")) {
-              <p class="text-red-500 text-xs mt-1">Must be greater than 0</p>
-            }
+    <!-- VIEW 2: BY MATERIAL (Grid Summary) -->
+    @if (activeView === "material") {
+      <div class="grid grid-cols-2 gap-3">
+        @if (materialGroups.length === 0) {
+          <div class="col-span-2 text-center text-neutral-500 mt-10">
+            <p>No materials found.</p>
           </div>
-
-          <div class="mb-0">
-            <label class="block text-sm font-medium text-white mb-2">
-              Unit Price (₹) <span class="text-red-500">*</span>
-            </label>
-            <input
-              type="number"
-              formControlName="unitPrice"
-              min="0"
-              step="0.01"
-              class="w-full px-3 py-2 bg-neutral-800 border border-neutral-700 text-white rounded-md text-base focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
-            />
-            @if (
-              materialForm.get("unitPrice")?.hasError("required") &&
-              materialForm.get("unitPrice")?.touched
-            ) {
-              <p class="text-red-500 text-xs mt-1">Price is required</p>
-            }
-            @if (materialForm.get("unitPrice")?.hasError("min")) {
-              <p class="text-red-500 text-xs mt-1">Price cannot be negative</p>
-            }
-          </div>
-        </div>
-
-        <!-- Auto-calculated Total Price -->
-        <div class="mb-4">
-          <label class="block text-sm font-medium text-white mb-2">
-            Total Price
-          </label>
+        }
+        @for (group of materialGroups; track group.name) {
           <div
-            class="p-3 bg-neutral-800 border border-neutral-700 rounded-md text-emerald-400 font-semibold text-lg"
+            (click)="openDetail(group.name, 'material')"
+            class="surface-card surface-card-interactive p-4 rounded-xl flex flex-col justify-between active:scale-95 transition-transform cursor-pointer"
           >
-            ₹ {{ materialForm.get("totalPrice")?.value | number: "1.2-2" }}
+            <div class="mb-3">
+              <h3 class="text-lg font-bold text-emerald-400 m-0 truncate">
+                {{ group.name }}
+              </h3>
+              <p class="text-xs text-neutral-400 m-0">{{ group.count }} Logs</p>
+            </div>
+            <div>
+              <p class="text-[10px] text-neutral-500 uppercase m-0 mb-1">
+                Total Spent
+              </p>
+              <p class="text-lg font-semibold text-white m-0">
+                ₹{{ group.totalPrice | number: "1.0-0" }}
+              </p>
+            </div>
           </div>
-        </div>
+        }
+      </div>
+    }
 
-        <!-- Builder Dropdown (Native Select) -->
-        <div class="mb-4">
-          <label class="block text-sm font-medium text-white mb-2">
-            Builder / Contractor <span class="text-red-500">*</span>
-          </label>
-          <select
-            formControlName="builderName"
-            class="w-full px-3 py-2 bg-neutral-800 border border-neutral-700 text-white rounded-md text-base focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 appearance-none cursor-pointer"
+    <!-- VIEW 3: BY BUILDER (List Summary) -->
+    @if (activeView === "builder") {
+      <div class="flex flex-col gap-3">
+        @if (builderGroups.length === 0) {
+          <div class="text-center text-neutral-500 mt-10">
+            <p>No builders found.</p>
+          </div>
+        }
+        @for (group of builderGroups; track group.name) {
+          <!-- <div
+            (click)="openDetail(group.name, 'builder')"
+            class="surface-card surface-card-interactive p-4 rounded-xl flex justify-between items-center transition-colors cursor-pointer"
           >
-            <option value="" disabled selected>Select builder</option>
-            @for (builder of BUILDER_OPTIONS; track builder) {
-              <option [value]="builder">{{ builder }}</option>
+            <div>
+              <h3 class="text-lg font-bold text-blue-400 m-0">
+                {{ group.name }}
+              </h3>
+              <p class="text-xs text-neutral-400 m-0">
+                {{ group.count }} Deliveries
+              </p>
+            </div>
+            <div class="text-right">
+              <p class="text-lg font-semibold text-white m-0">
+                ₹{{ group.totalPrice | number: "1.0-0" }}
+              </p>
+              <span
+                nz-icon
+                nzType="right"
+                class="text-neutral-500 text-xs ml-2"
+              ></span>
+            </div>
+          </div> -->
+          <div
+            (click)="openDetail(group.name, 'builder')"
+            class="bg-neutral-800 p-4 rounded-xl border border-neutral-700 shadow-sm flex flex-col active:bg-neutral-700 transition-colors cursor-pointer"
+          >
+            <div class="flex justify-between items-start mb-3">
+              <div>
+                <h3 class="text-lg font-bold text-blue-400 m-0">
+                  {{ group.name }}
+                </h3>
+                <p class="text-xs text-neutral-400 m-0">
+                  {{ group.count }} Material Deliveries
+                </p>
+              </div>
+              <span
+                nz-icon
+                nzType="right"
+                class="text-neutral-500 text-sm mt-1"
+              ></span>
+            </div>
+
+            <div
+              class="flex justify-between items-center pt-3 border-t border-neutral-700"
+            >
+              <!-- Total Material Cost -->
+              <div>
+                <p class="text-[10px] text-neutral-500 uppercase m-0 mb-1">
+                  Total Bill
+                </p>
+                <p class="text-sm font-semibold text-white m-0">
+                  ₹{{ group.totalPrice | number: "1.0-0" }}
+                </p>
+              </div>
+
+              <!-- Total Paid from Ledger -->
+              <div class="text-center">
+                <p class="text-[10px] text-neutral-500 uppercase m-0 mb-1">
+                  Paid
+                </p>
+                <p class="text-sm font-semibold text-emerald-400 m-0">
+                  ₹{{ group.totalPaid | number: "1.0-0" }}
+                </p>
+              </div>
+
+              <!-- Calculated Due (Dynamic colors for Due vs Advance) -->
+              <div class="text-right">
+                <p class="text-[10px] text-neutral-500 uppercase m-0 mb-1">
+                  Due Amount
+                </p>
+                <p
+                  class="text-sm font-bold m-0"
+                  [ngClass]="
+                    group.dueAmount <= 0 ? 'text-emerald-400' : 'text-red-400'
+                  "
+                >
+                  ₹{{
+                    (group.dueAmount > 0
+                      ? group.dueAmount
+                      : group.dueAmount * -1
+                    ) | number: "1.0-0"
+                  }}
+
+                  @if (group.dueAmount < 0) {
+                    <span
+                      class="text-[10px] ml-1 font-normal text-emerald-400/80"
+                      >(Adv)</span
+                    >
+                  }
+                </p>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- DRILL-DOWN DETAIL DRAWER (Slides from Right) -->
+    <nz-drawer
+      [nzVisible]="isDetailVisible"
+      nzPlacement="right"
+      [nzWidth]="'100%'"
+      [nzTitle]="detailTitle + ' History'"
+      (nzOnClose)="closeDetail()"
+    >
+      <ng-container *nzDrawerContent>
+        <div class="flex flex-col gap-4 pb-10">
+          @if (activeView === "builder") {
+            <!-- NEW: Grouped Log View for Builders -->
+            @for (group of builderDetailGroups; track group.materialName) {
+              <div class="mb-4">
+                <!-- Category Header -->
+                <div
+                  class="flex justify-between items-end border-b border-neutral-700 pb-2 mb-3"
+                >
+                  <h3 class="text-lg font-bold text-emerald-400 m-0">
+                    {{ group.materialName }}
+                  </h3>
+                  <p
+                    class="text-[10px] text-neutral-400 m-0 uppercase tracking-wider"
+                  >
+                    Total:
+                    <span class="text-white font-semibold text-sm"
+                      >₹{{ group.totalPrice | number: "1.0-0" }}</span
+                    >
+                  </p>
+                </div>
+
+                <!-- Chronological Logs -->
+                <div class="flex flex-col gap-2">
+                  @for (item of group.items; track item.id) {
+                    <div
+                      class="bg-neutral-800 p-3 rounded-lg border border-neutral-700 flex justify-between items-center relative pr-16"
+                    >
+                      <div>
+                        <!-- E.g., Oct 12 - 200 pcs -->
+                        <p class="text-white font-medium text-sm m-0">
+                          {{ item.deliveryDate | date: "MMM d" }}
+                          <span class="text-neutral-500 mx-1">-</span>
+                          {{ item.qty }} unit
+                        </p>
+                      </div>
+                      <div class="text-right">
+                        <!-- E.g., ₹ 4,500 -->
+                        <p class="text-emerald-400 font-semibold m-0 text-sm">
+                          ₹{{ item.totalPrice | number: "1.0-0" }}
+                        </p>
+                      </div>
+
+                      <!-- Edit / Delete actions -->
+                      <div class="absolute right-2 flex gap-1">
+                        <button
+                          (click)="openDrawer(item)"
+                          class="text-neutral-400 hover:text-blue-400 bg-transparent border-none p-1 cursor-pointer"
+                        >
+                          <span nz-icon nzType="edit"></span>
+                        </button>
+                        <button
+                          nz-popconfirm
+                          nzPopconfirmTitle="Delete?"
+                          nzPopconfirmPlacement="left"
+                          (nzOnConfirm)="deleteMaterial(item.id!)"
+                          class="text-neutral-400 hover:text-red-400 bg-transparent border-none p-1 cursor-pointer"
+                        >
+                          <span nz-icon nzType="delete"></span>
+                        </button>
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
             }
-          </select>
-          @if (
-            materialForm.get("builderName")?.hasError("required") &&
-            materialForm.get("builderName")?.touched
-          ) {
-            <p class="text-red-500 text-xs mt-1">Please select a builder</p>
+          } @else {
+            @for (item of detailItems; track item.id) {
+              <!-- Reusable Item Card template (minimal for detail view) -->
+              <ng-container
+                *ngTemplateOutlet="
+                  itemCard;
+                  context: { $implicit: item, view: 'detail' }
+                "
+              ></ng-container>
+            }
           }
         </div>
+      </ng-container>
+    </nz-drawer>
 
-        <!-- Date Picker (Flatpickr) -->
-        <div class="mb-6">
-          <label class="block text-sm font-medium text-white mb-2">
-            Delivery Date <span class="text-red-500">*</span>
-          </label>
-          <input
-            id="deliveryDateInput"
-            type="text"
-            formControlName="deliveryDate"
-            class="w-full px-3 py-2 bg-neutral-800 border border-neutral-700 text-white rounded-md text-base focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 cursor-pointer flatpickr-input"
-            placeholder="Select date"
-            readonly
-          />
-          @if (
-            materialForm.get("deliveryDate")?.hasError("required") &&
-            materialForm.get("deliveryDate")?.touched
-          ) {
-            <p class="text-red-500 text-xs mt-1">Please select a date</p>
-          }
-        </div>
+    <!-- FORM DRAWER (Slides from Bottom) -->
+    <nz-drawer
+      [nzVisible]="isDrawerVisible"
+      nzPlacement="bottom"
+      nzTitle="Log Material"
+      nzHeight="auto"
+      (nzOnClose)="closeDrawer()"
+    >
+      <ng-container *nzDrawerContent>
+        <form
+          nz-form
+          [formGroup]="materialForm"
+          (ngSubmit)="submitForm()"
+          nzLayout="vertical"
+        >
+          <!-- Hidden ID for edits -->
+          <input type="hidden" formControlName="id" />
 
-        <button
-          nz-button
-          nzType="primary"
-          nzBlock
-          nzSize="large"
-          [disabled]="materialForm.invalid"
-          class="theme-action-button mt-4 sticky bottom-4"
-          style="
-            padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
-            margin-bottom: calc(env(safe-area-inset-bottom));
-          "
-        >
-          Save Material
-        </button>
-      </form>
-    </ng-container>
-  </nz-drawer>
+          <!-- Material Dropdown (Native Select) -->
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-white mb-2">
+              Material Name <span class="text-red-500">*</span>
+            </label>
+            <select
+              formControlName="name"
+              class="w-full px-3 py-2 bg-neutral-800 border border-neutral-700 text-white rounded-md text-base focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 appearance-none cursor-pointer"
+            >
+              <option value="" disabled selected>Select material</option>
+              @for (mat of MATERIAL_OPTIONS; track mat) {
+                <option [value]="mat">{{ mat }}</option>
+              }
+            </select>
+            @if (
+              materialForm.get("name")?.hasError("required") &&
+              materialForm.get("name")?.touched
+            ) {
+              <p class="text-red-500 text-xs mt-1">Please select a material</p>
+            }
+          </div>
 
-  <!-- REUSABLE CARD TEMPLATE -->
-  <ng-template #itemCard let-item>
-    <!-- <div class="surface-card p-4 rounded-xl relative">
-      <div class="flex justify-between items-start mb-2 pr-12">
-        <h3 class="text-lg font-bold text-white m-0 truncate">
-          {{ item.name }}
-        </h3>
-        <span class="text-xs text-neutral-400 whitespace-nowrap">{{
-          item.deliveryDate | date: "MMM d, y"
-        }}</span>
-      </div>
-      <div class="mb-4">
-        <span
-          class="bg-neutral-700 text-neutral-300 text-xs px-2 py-1 rounded-md"
-        >
-          {{ item.qty }} × ₹{{ item.unitPrice | number: "1.0-0" }}
-        </span>
-      </div>
-      <div
-        class="flex justify-between items-end pt-3 border-t border-neutral-700"
-      >
-        <div>
-          <p class="text-[10px] text-neutral-500 uppercase m-0 mb-1">
-            Total Price
-          </p>
-          <p class="text-xl font-semibold text-emerald-400 m-0">
-            ₹{{ item.totalPrice | number: "1.2-2" }}
-          </p>
-        </div>
-        <div class="text-right">
-          <p class="text-[10px] text-neutral-500 uppercase m-0 mb-1">Builder</p>
-          <p class="text-sm text-neutral-200 m-0 truncate max-w-[120px]">
-            {{ item.builderName }}
-          </p>
-        </div>
-      </div>
-      <div class="absolute top-3 right-2 flex gap-0.5">
-        <button
-          (click)="openDrawer(item)"
-          class="text-neutral-400 hover:text-blue-400 bg-transparent border-none p-1"
-        >
-          <span nz-icon nzType="edit"></span>
-        </button>
-        <button
-          nz-popconfirm
-          nzPopconfirmTitle="Delete?"
-          nzPopconfirmPlacement="left"
-          (nzOnConfirm)="deleteMaterial(item.id!)"
-          class="text-neutral-400 hover:text-red-400 bg-transparent border-none p-1"
-        >
-          <span nz-icon nzType="delete"></span>
-        </button>
-      </div>
-    </div> -->
-    <app-material-card
-      [item]="item"
-      (openDrawerEvent)="openDrawer($event)"
-      (deleteMaterialEvent)="deleteMaterial($event)"
-    />
-  </ng-template>
-</div>
+          <!-- Qty and Price -->
+          <div class="grid grid-cols-2 gap-4 mb-4">
+            <div class="mb-0">
+              <label class="block text-sm font-medium text-white mb-2">
+                Quantity <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                formControlName="qty"
+                min="0.01"
+                step="0.01"
+                class="w-full px-3 py-2 bg-neutral-800 border border-neutral-700 text-white rounded-md text-base focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+              />
+              @if (
+                materialForm.get("qty")?.hasError("required") &&
+                materialForm.get("qty")?.touched
+              ) {
+                <p class="text-red-500 text-xs mt-1">Quantity is required</p>
+              }
+              @if (materialForm.get("qty")?.hasError("min")) {
+                <p class="text-red-500 text-xs mt-1">Must be greater than 0</p>
+              }
+            </div>
+
+            <div class="mb-0">
+              <label class="block text-sm font-medium text-white mb-2">
+                Unit Price (₹) <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                formControlName="unitPrice"
+                min="0"
+                step="0.01"
+                class="w-full px-3 py-2 bg-neutral-800 border border-neutral-700 text-white rounded-md text-base focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+              />
+              @if (
+                materialForm.get("unitPrice")?.hasError("required") &&
+                materialForm.get("unitPrice")?.touched
+              ) {
+                <p class="text-red-500 text-xs mt-1">Price is required</p>
+              }
+              @if (materialForm.get("unitPrice")?.hasError("min")) {
+                <p class="text-red-500 text-xs mt-1">
+                  Price cannot be negative
+                </p>
+              }
+            </div>
+          </div>
+
+          <!-- Auto-calculated Total Price -->
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-white mb-2">
+              Total Price
+            </label>
+            <div
+              class="p-3 bg-neutral-800 border border-neutral-700 rounded-md text-emerald-400 font-semibold text-lg"
+            >
+              ₹ {{ materialForm.get("totalPrice")?.value | number: "1.2-2" }}
+            </div>
+          </div>
+
+          <!-- Builder Dropdown (Native Select) -->
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-white mb-2">
+              Builder / Contractor <span class="text-red-500">*</span>
+            </label>
+            <select
+              formControlName="builderName"
+              class="w-full px-3 py-2 bg-neutral-800 border border-neutral-700 text-white rounded-md text-base focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 appearance-none cursor-pointer"
+            >
+              <option value="" disabled selected>Select builder</option>
+              @for (builder of BUILDER_OPTIONS; track builder) {
+                <option [value]="builder">{{ builder }}</option>
+              }
+            </select>
+            @if (
+              materialForm.get("builderName")?.hasError("required") &&
+              materialForm.get("builderName")?.touched
+            ) {
+              <p class="text-red-500 text-xs mt-1">Please select a builder</p>
+            }
+          </div>
+
+          <!-- Date Picker (Flatpickr) -->
+          <div class="mb-6">
+            <label class="block text-sm font-medium text-white mb-2">
+              Delivery Date <span class="text-red-500">*</span>
+            </label>
+            <input
+              id="deliveryDateInput"
+              type="text"
+              formControlName="deliveryDate"
+              class="w-full px-3 py-2 bg-neutral-800 border border-neutral-700 text-white rounded-md text-base focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 cursor-pointer flatpickr-input"
+              placeholder="Select date"
+              readonly
+            />
+            @if (
+              materialForm.get("deliveryDate")?.hasError("required") &&
+              materialForm.get("deliveryDate")?.touched
+            ) {
+              <p class="text-red-500 text-xs mt-1">Please select a date</p>
+            }
+          </div>
+
+          <button
+            nz-button
+            nzType="primary"
+            nzBlock
+            nzSize="large"
+            [disabled]="materialForm.invalid"
+            class="theme-action-button mt-4 sticky bottom-4"
+            style="
+              padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
+              margin-bottom: calc(env(safe-area-inset-bottom));
+            "
+          >
+            Save Material
+          </button>
+        </form>
+      </ng-container>
+    </nz-drawer>
+
+    <!-- REUSABLE CARD TEMPLATE -->
+    <ng-template #itemCard let-item let-view="view">
+      <app-material-card
+        [item]="item"
+        [view]="view"
+        (openDrawerEvent)="openDrawer($event)"
+        (deleteMaterialEvent)="deleteMaterial($event)"
+      />
+    </ng-template>
+  </div>
+}

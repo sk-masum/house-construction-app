@@ -34,6 +34,11 @@
                 "glob": "**/*",
                 "input": "./node_modules/@ant-design/icons-angular/src/inline-svg/",
                 "output": "/assets/"
+              },
+              {
+                "glob": "sqlite3*",
+                "input": "node_modules/@sqlite.org/sqlite-wasm/dist",
+                "output": "/"
               }
             ],
             "styles": [
@@ -69,6 +74,13 @@
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
+          "options": {
+            "prebundle": {
+              "exclude": [
+                "@sqlite.org/sqlite-wasm"
+              ]
+            }
+          },
           "configurations": {
             "production": {
               "buildTarget": "house-construction:build:production"
@@ -95,6 +107,11 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "sqlite3*",
+                "input": "node_modules/@sqlite.org/sqlite-wasm/dist",
+                "output": "/"
               }
             ],
             "styles": [

@@ -6,6 +6,12 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 
 Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
 
+## Local data storage
+
+Materials and ledger entries are stored locally in SQLite. OPFS is used when available; the current main-thread implementation uses SQLite's persistent `localStorage` backend otherwise. It does not fall back to temporary memory storage.
+
+Data survives page refreshes on the same origin (scheme, hostname, and port). Clearing site data removes the database; private browsing and browser storage quotas can restrict persistence. Use the dashboard CSV exports for backups. Data already lost from the previous temporary-memory backend cannot be recovered by this change.
+
 ## Code scaffolding
 
 Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.

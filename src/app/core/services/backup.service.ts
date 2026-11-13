@@ -11,7 +11,7 @@ export class BackupService {
   // --- EXPORT METHODS ---
 
   async exportMaterials() {
-    const materials = await this.db.materials.toArray();
+    const materials = await this.db.getAllMaterials();
     if (materials.length === 0) {
       return alert('No materials to export.');
     }
@@ -22,7 +22,7 @@ export class BackupService {
   }
 
   async exportTransactions() {
-    const transactions = await this.db.transactions.toArray();
+    const transactions = await this.db.getAllTransactions();
     if (transactions.length === 0) {
       return alert('No transactions to export.');
     }
@@ -53,15 +53,17 @@ export class BackupService {
     return new Promise((resolve, reject) => {
       Papa.parse(file, {
         header: true,
-        dynamicTyping: true, // Automatically converts numeric strings back to numbers
+        dynamicTyping: true,
         skipEmptyLines: true,
         complete: async (results: any) => {
           try {
             const data = results.data.map((item: any) => {
-              delete item.id; // Remove old IDs so Dexie generates fresh ones to prevent conflicts
+              delete item.id;
               return item;
             });
-            await this.db.materials.bulkAdd(data);
+            for (const item of data) {
+              await this.db.addMaterial(item);
+            }
             resolve();
           } catch (err) {
             reject(err);
@@ -84,7 +86,9 @@ export class BackupService {
               delete item.id;
               return item;
             });
-            await this.db.transactions.bulkAdd(data);
+            for (const item of data) {
+              await this.db.addTransaction(item);
+            }
             resolve();
           } catch (err) {
             reject(err);

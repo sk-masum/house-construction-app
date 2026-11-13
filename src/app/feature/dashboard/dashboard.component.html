@@ -1,12 +1,75 @@
 <div class="p-4">
   <h1 class="text-2xl font-bold text-white mb-6">Site Overview</h1>
 
+  <div
+    class="bg-neutral-800 p-5 rounded-2xl border border-neutral-700 shadow-lg mb-4 flex justify-between items-center relative overflow-hidden"
+  >
+    <div class="z-10">
+      <p class="text-[11px] text-neutral-400 uppercase tracking-wider mb-1 m-0">
+        Global Balance
+      </p>
+
+      <div class="flex items-baseline gap-2 mt-1">
+        <!-- Amount (Strips the minus sign if it's an advance) -->
+        <p
+          class="text-3xl font-bold m-0"
+          [ngClass]="
+            isAdvance
+              ? 'text-emerald-400'
+              : outstandingBalance === 0
+                ? 'text-white'
+                : 'text-red-400'
+          "
+        >
+          ₹{{
+            (isAdvance ? outstandingBalance * -1 : outstandingBalance)
+              | number: "1.0-0"
+          }}
+        </p>
+
+        <!-- Dynamic Status Badge -->
+        @if (isAdvance) {
+          <span
+            class="text-[10px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-2 py-1 rounded-md"
+          >
+            Advance
+          </span>
+        } @else if (outstandingBalance > 0) {
+          <span
+            class="text-[10px] font-bold uppercase tracking-wider text-red-400 bg-red-400/10 border border-red-400/20 px-2 py-1 rounded-md"
+          >
+            To Pay
+          </span>
+        } @else {
+          <span
+            class="text-[10px] font-bold uppercase tracking-wider text-neutral-300 bg-neutral-600 border border-neutral-500 px-2 py-1 rounded-md"
+          >
+            Settled
+          </span>
+        }
+      </div>
+    </div>
+
+    <div class="z-10 opacity-20">
+      <span
+        nz-icon
+        nzType="wallet"
+        class="text-6xl"
+        [ngClass]="isAdvance ? 'text-emerald-400' : 'text-red-400'"
+      ></span>
+    </div>
+
+    <!-- Decorative background glow -->
+    <div
+      class="absolute -right-8 -bottom-8 w-32 h-32 rounded-full blur-3xl"
+      [ngClass]="isAdvance ? 'bg-emerald-500/20' : 'bg-red-500/20'"
+    ></div>
+  </div>
+
   <!-- Metrics Grid -->
   <div class="grid grid-cols-2 gap-4 mb-8">
     <!-- Material Spend Card -->
-    <div
-      class="surface-card p-4 rounded-xl flex flex-col justify-center"
-    >
+    <div class="surface-card p-4 rounded-xl flex flex-col justify-center">
       <p class="text-[11px] text-neutral-400 uppercase tracking-wider mb-1 m-0">
         Material Spend
       </p>
@@ -16,9 +79,7 @@
     </div>
 
     <!-- Ledger Transactions Card -->
-    <div
-      class="surface-card p-4 rounded-xl flex flex-col justify-center"
-    >
+    <div class="surface-card p-4 rounded-xl flex flex-col justify-center">
       <p class="text-[11px] text-neutral-400 uppercase tracking-wider mb-1 m-0">
         Ledger Total
       </p>
@@ -26,6 +87,38 @@
         ₹{{ totalTransactions | number: "1.0-0" }}
       </p>
     </div>
+  </div>
+
+  <!-- Spend Analytics Chart -->
+  <div
+    class="bg-neutral-800 p-5 rounded-xl border border-neutral-700 shadow-sm mb-8"
+  >
+    <h2
+      class="text-sm font-semibold text-neutral-300 mb-4 uppercase tracking-wider"
+    >
+      Spend Breakdown
+    </h2>
+
+    @if (pieChartData.labels && pieChartData.labels.length > 0) {
+      <div class="h-52 relative">
+        <canvas
+          baseChart
+          [data]="pieChartData"
+          [options]="pieChartOptions"
+          [type]="'doughnut'"
+        >
+        </canvas>
+      </div>
+    } @else {
+      <div class="text-center text-neutral-500 py-6">
+        <span
+          nz-icon
+          nzType="pie-chart"
+          class="text-3xl mb-2 opacity-50"
+        ></span>
+        <p class="text-xs m-0">No materials logged yet.</p>
+      </div>
+    }
   </div>
 
   <!-- Data Management / Backup -->
@@ -94,9 +187,7 @@
   <!-- Unified Activity Timeline -->
   <h2 class="text-lg font-semibold text-neutral-300 mb-4">Recent Activity</h2>
 
-  <div
-    class="surface-card p-5 rounded-xl"
-  >
+  <div class="surface-card p-5 rounded-xl">
     <nz-timeline *ngIf="recentActivity.length > 0; else emptyState">
       <nz-timeline-item
         *ngFor="let item of recentActivity"

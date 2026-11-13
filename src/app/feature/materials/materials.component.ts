@@ -15,7 +15,11 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { Subscription } from 'rxjs';
-import { DbService, Material } from '../../core/services/db.service';
+import {
+  DbService,
+  Material,
+  MaterialFilters,
+} from '../../core/services/db.service';
 import { FlatpickrUtils } from '../../shared/utils/flatpickr.utils';
 import {
   TabSwitcherComponent,
@@ -30,6 +34,7 @@ import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
+import { NzSpinModule } from 'ng-zorro-antd/spin';
 
 @Component({
   selector: 'app-materials',
@@ -46,6 +51,7 @@ import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
     NzIconModule,
     NzPopconfirmModule,
     MaterialCardComponent,
+    NzSpinModule,
   ],
   templateUrl: './materials.component.html',
 })
@@ -71,6 +77,7 @@ export class MaterialsComponent implements OnInit, OnDestroy {
   ];
 
   dateGroups: any[] = [];
+  isLoading = true;
 
   // Form States
   isDrawerVisible = false;
@@ -79,7 +86,7 @@ export class MaterialsComponent implements OnInit, OnDestroy {
 
   // View & Data States
   activeView: 'date' | 'material' | 'builder' = 'date';
-  rawMaterials: Material[] = [];
+  // rawMaterials: Material[] = [];
   displayMaterials: Material[] = [];
   sortOrder: 'desc' | 'asc' = 'desc';
 
@@ -92,6 +99,7 @@ export class MaterialsComponent implements OnInit, OnDestroy {
   detailTitle = '';
   detailItems: Material[] = [];
   builderDetailGroups: any[] = [];
+  currentSqlFilters: MaterialFilters = {};
 
   // Flatpickr instance
   private datepickerInstance: any;
@@ -141,92 +149,56 @@ export class MaterialsComponent implements OnInit, OnDestroy {
   }
 
   async loadMaterials() {
-    this.rawMaterials = await this.db.getAllMaterials();
-    this.applyFilters();
+    await this.applyFilters();
   }
 
-  applyFilters(): void {
-    let filtered = [...this.rawMaterials];
-    const selectedMaterials = this.filterForm.value.materials || [];
-    const selectedBuilders = this.filterForm.value.builders || [];
-    const dateRange = this.filterForm.value.dateRange || [];
+  async applyFilters() {
+    this.isLoading = true;
+    this.cdr.detectChanges();
 
-    if (selectedMaterials.length > 0) {
-      filtered = filtered.filter((item) =>
-        selectedMaterials.includes(item.name),
-      );
-    }
+    const formVals = this.filterForm.value;
 
-    if (selectedBuilders.length > 0) {
-      filtered = filtered.filter((item) =>
-        selectedBuilders.includes(item.builderName),
-      );
-    }
+    this.currentSqlFilters = {
+      materials: formVals.materials || [],
+      builders: formVals.builders || [],
+      startDate: formVals.dateRange?.[0]
+        ? new Date(
+            new Date(formVals.dateRange[0]).setHours(0, 0, 0, 0),
+          ).toISOString()
+        : undefined,
+      endDate: formVals.dateRange?.[1]
+        ? new Date(
+            new Date(formVals.dateRange[1]).setHours(23, 59, 59, 999),
+          ).toISOString()
+        : undefined,
+      sortOrder: this.sortOrder,
+    };
 
-    if (dateRange.length === 2 && dateRange[0] && dateRange[1]) {
-      const start = new Date(dateRange[0]).setHours(0, 0, 0, 0);
-      const end = new Date(dateRange[1]).setHours(23, 59, 59, 999);
-      filtered = filtered.filter((item) => {
-        const itemDate = new Date(item.deliveryDate).getTime();
-        return itemDate >= start && itemDate <= end;
-      });
-    }
+    // Execute all 3 SQL queries concurrently
+    const [display, builderAgg, materialAgg] = await Promise.all([
+      this.db.getFilteredMaterials(this.currentSqlFilters),
+      this.db.getBuilderSummaries(this.currentSqlFilters),
+      this.db.getMaterialSummaries(this.currentSqlFilters),
+    ]);
 
-    filtered.sort((a, b) => {
-      const dateA = new Date(a.deliveryDate).getTime();
-      const dateB = new Date(b.deliveryDate).getTime();
-      return this.sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
-    });
+    this.displayMaterials = display;
+    this.builderGroups = builderAgg;
+    this.materialGroups = materialAgg;
 
-    this.displayMaterials = filtered;
-    this.buildGroups(); // Aggregate data for the new views
+    this.buildDateGroups(); // (We still group dates via JS using displayMaterials to preserve the full item cards)
+
+    this.isLoading = false;
+    this.cdr.detectChanges();
   }
 
-  buildGroups(): void {
-    const matMap = new Map<string, any>();
-    const builderMap = new Map<string, any>();
-    const dateMap = new Map<string, any>(); // NEW: Map for dates
-
+  buildDateGroups(): void {
+    const dateMap = new Map<string, any>();
     for (const item of this.displayMaterials) {
-      // --- 1. Aggregate by Material (Existing) ---
-      if (!matMap.has(item.name)) {
-        matMap.set(item.name, {
-          name: item.name,
-          totalQty: 0,
-          totalPrice: 0,
-          count: 0,
-          items: [],
-        });
-      }
-      const mGroup = matMap.get(item.name);
-      mGroup.totalQty += item.qty;
-      mGroup.totalPrice += item.totalPrice;
-      mGroup.count++;
-      mGroup.items.push(item);
-
-      // --- 2. Aggregate by Builder (Existing) ---
-      if (!builderMap.has(item.builderName)) {
-        builderMap.set(item.builderName, {
-          name: item.builderName,
-          totalPrice: 0,
-          count: 0,
-          items: [],
-        });
-      }
-      const bGroup = builderMap.get(item.builderName);
-      bGroup.totalPrice += item.totalPrice;
-      bGroup.count++;
-      bGroup.items.push(item);
-
-      // --- 3. Aggregate by Date (NEW) ---
-      // Strip out the time to group everything on the same calendar day
-      const d = new Date(item.deliveryDate);
-      const dateKey = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
-
+      const dateKey = item.deliveryDate.toString().split('T')[0];
       if (!dateMap.has(dateKey)) {
         dateMap.set(dateKey, {
-          dateKey: dateKey,
-          displayDate: item.deliveryDate, // Keep original for the pipe
+          dateKey,
+          displayDate: item.deliveryDate,
           totalPrice: 0,
           count: 0,
           items: [],
@@ -237,23 +209,7 @@ export class MaterialsComponent implements OnInit, OnDestroy {
       dGroup.count++;
       dGroup.items.push(item);
     }
-
-    // Convert Maps to Arrays and Sort them
-    this.materialGroups = Array.from(matMap.values()).sort(
-      (a, b) => b.totalPrice - a.totalPrice,
-    );
-    this.builderGroups = Array.from(builderMap.values()).sort(
-      (a, b) => b.totalPrice - a.totalPrice,
-    );
-
-    // Sort Date groups based on your toggleable sortOrder
-    this.dateGroups = Array.from(dateMap.values()).sort((a, b) => {
-      const timeA = new Date(a.displayDate).getTime();
-      const timeB = new Date(b.displayDate).getTime();
-      return this.sortOrder === 'desc' ? timeB - timeA : timeA - timeB;
-    });
-
-    this.cdr.detectChanges();
+    this.dateGroups = Array.from(dateMap.values());
   }
 
   // --- View Navigation & Drill Down ---
@@ -265,11 +221,22 @@ export class MaterialsComponent implements OnInit, OnDestroy {
     this.setView(value as 'date' | 'material' | 'builder');
   }
 
-  openDetail(title: string, items: Material[]) {
+  async openDetail(title: string, type: 'builder' | 'material') {
     this.detailTitle = title;
-    this.detailItems = items;
     this.isDetailVisible = true;
-    this.processDetailGroups();
+    this.detailItems = []; // Clear old data to prevent flickering
+    this.cdr.detectChanges();
+
+    // Create a specific filter object for this drill-down
+    const drillDownFilters = { ...this.currentSqlFilters };
+    if (type === 'builder') drillDownFilters.builders = [title];
+    if (type === 'material') drillDownFilters.materials = [title];
+
+    // Query SQLite for the exact records
+    this.detailItems = await this.db.getFilteredMaterials(drillDownFilters);
+
+    this.processDetailGroups(); // Runs your existing invoice-style grouping
+    this.cdr.detectChanges();
   }
 
   closeDetail() {
@@ -315,13 +282,12 @@ export class MaterialsComponent implements OnInit, OnDestroy {
     if (this.materialForm.valid) {
       const formValue = this.materialForm.getRawValue();
 
-      // Flatpickr already stores as Date, but ensure it's a Date object
       if (!(formValue.deliveryDate instanceof Date)) {
         formValue.deliveryDate = new Date(formValue.deliveryDate);
       }
 
       if (formValue.id) {
-        await this.db.materials.put(formValue);
+        await this.db.updateMaterial(formValue);
       } else {
         delete formValue.id;
         await this.db.addMaterial(formValue);
@@ -331,7 +297,7 @@ export class MaterialsComponent implements OnInit, OnDestroy {
       await this.loadMaterials();
 
       if (this.isDetailVisible) {
-        this.updateDetailView(formValue.name, formValue.builderName);
+        await this.updateDetailView();
       }
     }
   }
@@ -341,26 +307,30 @@ export class MaterialsComponent implements OnInit, OnDestroy {
       await this.db.deleteMaterial(id);
       await this.loadMaterials();
 
-      // Remove from open drill-down view if active
       if (this.isDetailVisible) {
-        this.detailItems = this.detailItems.filter((i) => i.id !== id);
-        if (this.detailItems.length === 0) this.closeDetail();
+        await this.updateDetailView();
+
+        if (this.detailItems.length === 0) {
+          this.closeDetail();
+        }
       }
     }
   }
 
-  private updateDetailView(matName: string, builderName: string) {
-    // Refreshes the inner list based on what was being viewed
-    if (this.activeView === 'material') {
-      const group = this.materialGroups.find(
-        (g) => g.name === this.detailTitle,
-      );
-      this.detailItems = group ? group.items : [];
-    } else if (this.activeView === 'builder') {
-      const group = this.builderGroups.find((g) => g.name === this.detailTitle);
-      this.detailItems = group ? group.items : [];
+  private async updateDetailView() {
+    // Create a specific filter object for this drill-down
+    const drillDownFilters = { ...this.currentSqlFilters };
+
+    if (this.activeView === 'builder') {
+      drillDownFilters.builders = [this.detailTitle];
+    } else if (this.activeView === 'material') {
+      drillDownFilters.materials = [this.detailTitle];
     }
 
+    // Re-fetch the exact records from SQLite
+    this.detailItems = await this.db.getFilteredMaterials(drillDownFilters);
+
+    // Re-run the grouping for the UI
     this.processDetailGroups();
     this.cdr.detectChanges();
   }
