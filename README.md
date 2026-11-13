@@ -28,6 +28,8 @@ On iPhone or iPad, open the deployed site in Safari, tap **Share**, then **Add t
 
 The floating navigation uses Safari-compatible backdrop blur with an opaque fallback when blur is unavailable or reduced transparency is requested. Its position includes the Home indicator and landscape safe-area insets. After deploying UI changes, verify the installed app in portrait and landscape: the dock should stay above the Home indicator, all three tabs should remain tappable, and the final content should scroll clear of the dock.
 
+Safe-area variables are defined globally in `src/styles.scss` so routed pages and overlay drawers share the same insets. Full-screen History drawers protect all four edges; bottom drawers omit the top inset. Keep safe-area padding on these shared containers rather than adding it to individual buttons or pages.
+
 All device PNG icons and the favicon use the artwork from `public/icons/apple-touch-icon.png`; the SVG icon uses the same design. Icon assets are precached with the app. Existing iOS Home Screen icons may require removing and re-adding the app after deployment to pick up artwork changes.
 
 ## Vercel deployment

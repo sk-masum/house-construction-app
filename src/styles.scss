@@ -3,6 +3,13 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
+}
+
 html {
   color-scheme: dark;
 }
@@ -127,10 +134,15 @@ body::before {
 
 /* 1. Bottom Drawer Overrides */
 .ant-drawer-content {
+  padding: var(--safe-area-top) var(--safe-area-right) var(--safe-area-bottom) var(--safe-area-left);
   background:
     linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01)),
     rgba(22, 28, 34, 0.78) !important;
   color: #f5f5f5 !important; /* Tailwind neutral-100 */
+}
+
+.ant-drawer-bottom .ant-drawer-content {
+  padding-top: 0;
 }
 
 @supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {

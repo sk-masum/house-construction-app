@@ -404,17 +404,6 @@ select {
   padding-bottom: calc(0.5rem + env(safe-area-inset-bottom));
 }
 
-// ===== Drawer Safe Area Fix =====
-::ng-deep .ant-drawer {
-  &-content-wrapper {
-    padding-bottom: env(safe-area-inset-bottom) !important;
-  }
-
-  &-body {
-    padding-bottom: calc(1rem + env(safe-area-inset-bottom)) !important;
-  }
-}
-
 // ===== Form Container with Safe Area =====
 .form-drawer-container {
   display: flex;
