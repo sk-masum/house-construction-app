@@ -1,15 +1,122 @@
 <!-- Main Content Area: dynamically loads your pages -->
-<main
-  class="safe-area-view text-neutral-100"
+
+<!-- Global Header -->
+<div
+  class="sticky top-0 z-50 pb-safe border-b border-neutral-700/30"
+  style="
+    background:
+      linear-gradient(
+        160deg,
+        rgba(255, 255, 255, 0.04),
+        rgba(255, 255, 255, 0.01)
+      ),
+      rgba(20, 20, 20, 0.4);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+  "
 >
+  <div class="flex justify-between items-center px-4 py-3 gap-4">
+    <!-- Logo & Title -->
+    <div class="flex items-center gap-3 flex-shrink-0">
+      <div
+        class="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-500 flex items-center justify-center"
+      >
+        <span
+          nz-icon
+          nzType="home"
+          nzTheme="fill"
+          class="text-neutral-900 text-lg"
+        ></span>
+      </div>
+      <div>
+        <h1 class="text-lg font-black text-emerald-400 tracking-tight m-0">
+          SiteLedger
+        </h1>
+        <p class="text-[10px] text-neutral-500 m-0 font-medium">
+          Site Management
+        </p>
+      </div>
+    </div>
+
+    <!-- Global Project Selector -->
+    <div class="flex-1 max-w-xs">
+      <nz-select
+        [ngModel]="activeWorkId"
+        (ngModelChange)="onWorkChange($event)"
+        nzPlaceHolder="All Site Works"
+        class="app-header-select w-full"
+      >
+        <nz-option [nzValue]="null" nzLabel="All Site Works"></nz-option>
+        @for (work of allWorks; track work.id) {
+          <nz-option [nzValue]="work.id" [nzLabel]="work.name"></nz-option>
+        }
+      </nz-select>
+    </div>
+
+    <!-- Actions Menu -->
+    <div nz-dropdown [nzDropdownMenu]="menu" nzPlacement="bottomRight">
+      <button
+        nz-button
+        nzType="text"
+        class="!text-neutral-400 hover:!text-emerald-400 !border-none !h-auto !p-2 transition-colors"
+      >
+        <span
+          nz-icon
+          nzType="ellipsis"
+          nzTheme="outline"
+          class="text-xl"
+        ></span>
+      </button>
+    </div>
+    <nz-dropdown-menu #menu="nzDropdownMenu">
+      <ul nz-menu class="bg-neutral-900 border border-neutral-700">
+        <!-- Data Export Section -->
+        <li nz-menu-item (click)="exportMaterials()">
+          <span nz-icon nzType="download" nzTheme="outline"></span>
+          <span>Export Materials</span>
+        </li>
+        <li nz-menu-item (click)="exportTransactions()">
+          <span nz-icon nzType="download" nzTheme="outline"></span>
+          <span>Export Ledger</span>
+        </li>
+        
+        <li nz-menu-divider></li>
+        
+        <!-- Data Import Section -->
+        <li nz-menu-item (click)="importMaterialsClick()">
+          <span nz-icon nzType="upload" nzTheme="outline"></span>
+          <span>Import Materials</span>
+        </li>
+        <li nz-menu-item (click)="importTransactionsClick()">
+          <span nz-icon nzType="upload" nzTheme="outline"></span>
+          <span>Import Ledger</span>
+        </li>
+      </ul>
+    </nz-dropdown-menu>
+
+    <!-- Hidden File Inputs -->
+    <input
+      #materialUpload
+      type="file"
+      accept=".csv"
+      class="hidden"
+      (change)="onMaterialFileSelected($event)"
+    />
+    <input
+      #transactionUpload
+      type="file"
+      accept=".csv"
+      class="hidden"
+      (change)="onTransactionFileSelected($event)"
+    />
+  </div>
+</div>
+<main class="safe-area-view text-neutral-100">
   <router-outlet></router-outlet>
 </main>
 
 <!-- PWA Bottom Navigation Bar -->
-<nav
-  class="safe-area-navigation"
-  aria-label="Main navigation"
->
+<nav class="safe-area-navigation" aria-label="Main navigation">
   <div class="glass-dock">
     <!-- Dashboard Tab -->
     <a
@@ -25,9 +132,7 @@
         nzTheme="outline"
         class="dock-icon"
       ></span>
-      <span class="dock-label"
-        >Dashboard</span
-      >
+      <span class="dock-label">Dashboard</span>
     </a>
 
     <!-- Materials Tab -->
@@ -37,15 +142,8 @@
       ariaCurrentWhenActive="page"
       class="dock-tab"
     >
-      <span
-        nz-icon
-        nzType="gold"
-        nzTheme="outline"
-        class="dock-icon"
-      ></span>
-      <span class="dock-label"
-        >Materials</span
-      >
+      <span nz-icon nzType="gold" nzTheme="outline" class="dock-icon"></span>
+      <span class="dock-label">Materials</span>
     </a>
 
     <!-- Transactions Tab -->
@@ -55,15 +153,19 @@
       ariaCurrentWhenActive="page"
       class="dock-tab"
     >
-      <span
-        nz-icon
-        nzType="swap"
-        nzTheme="outline"
-        class="dock-icon"
-      ></span>
-      <span class="dock-label"
-        >Ledger</span
-      >
+      <span nz-icon nzType="swap" nzTheme="outline" class="dock-icon"></span>
+      <span class="dock-label">Ledger</span>
+    </a>
+
+    <!-- Work -->
+    <a
+      routerLink="/works"
+      routerLinkActive="is-active"
+      ariaCurrentWhenActive="page"
+      class="dock-tab"
+    >
+      <span nz-icon nzType="project" nzTheme="outline" class="dock-icon"></span>
+      <span class="dock-label">Works</span>
     </a>
   </div>
 </nav>

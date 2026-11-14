@@ -23,4 +23,9 @@ export const routes: Routes = [
         (m) => m.TransactionsComponent,
       ),
   },
+  {
+    path: 'works',
+    loadComponent: () =>
+      import('./feature/works/works.component').then((m) => m.WorksComponent),
+  },
 ];

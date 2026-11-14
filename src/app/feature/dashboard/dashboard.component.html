@@ -1,16 +1,26 @@
 <div class="p-4">
-  <h1 class="text-2xl font-bold text-white mb-6">Site Overview</h1>
+  <!-- Dynamic Title -->
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-white m-0">
+      {{ activeWork ? activeWork.name : "Global Site Overview" }}
+    </h1>
+    @if (activeWork) {
+      <p class="text-sm text-neutral-400 m-0 mt-1">
+        Contractor:
+        <span class="text-blue-400">{{ activeWork.contractorName }}</span>
+      </p>
+    }
+  </div>
 
+  <!-- Wallet Hero: Total Project Balance -->
   <div
     class="bg-neutral-800 p-5 rounded-2xl border border-neutral-700 shadow-lg mb-4 flex justify-between items-center relative overflow-hidden"
   >
     <div class="z-10">
       <p class="text-[11px] text-neutral-400 uppercase tracking-wider mb-1 m-0">
-        Global Balance
+        {{ activeWork ? "Project Due Balance" : "Global Due Balance" }}
       </p>
-
       <div class="flex items-baseline gap-2 mt-1">
-        <!-- Amount (Strips the minus sign if it's an advance) -->
         <p
           class="text-3xl font-bold m-0"
           [ngClass]="
@@ -26,30 +36,24 @@
               | number: "1.0-0"
           }}
         </p>
-
-        <!-- Dynamic Status Badge -->
         @if (isAdvance) {
           <span
-            class="text-[10px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-2 py-1 rounded-md"
+            class="text-[10px] font-bold uppercase text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-2 py-1 rounded-md"
+            >Advance</span
           >
-            Advance
-          </span>
         } @else if (outstandingBalance > 0) {
           <span
-            class="text-[10px] font-bold uppercase tracking-wider text-red-400 bg-red-400/10 border border-red-400/20 px-2 py-1 rounded-md"
+            class="text-[10px] font-bold uppercase text-red-400 bg-red-400/10 border border-red-400/20 px-2 py-1 rounded-md"
+            >To Pay</span
           >
-            To Pay
-          </span>
         } @else {
           <span
-            class="text-[10px] font-bold uppercase tracking-wider text-neutral-300 bg-neutral-600 border border-neutral-500 px-2 py-1 rounded-md"
+            class="text-[10px] font-bold uppercase text-neutral-300 bg-neutral-600 border border-neutral-500 px-2 py-1 rounded-md"
+            >Settled</span
           >
-            Settled
-          </span>
         }
       </div>
     </div>
-
     <div class="z-10 opacity-20">
       <span
         nz-icon
@@ -58,47 +62,121 @@
         [ngClass]="isAdvance ? 'text-emerald-400' : 'text-red-400'"
       ></span>
     </div>
-
-    <!-- Decorative background glow -->
     <div
       class="absolute -right-8 -bottom-8 w-32 h-32 rounded-full blur-3xl"
       [ngClass]="isAdvance ? 'bg-emerald-500/20' : 'bg-red-500/20'"
     ></div>
   </div>
 
-  <!-- Metrics Grid -->
-  <div class="grid grid-cols-2 gap-4 mb-8">
-    <!-- Material Spend Card -->
-    <div class="surface-card p-4 rounded-xl flex flex-col justify-center">
-      <p class="text-[11px] text-neutral-400 uppercase tracking-wider mb-1 m-0">
-        Material Spend
+  <!-- Liability Split Grid -->
+  <div class="grid grid-cols-2 gap-4 mb-6">
+    <div class="bg-neutral-900 p-4 rounded-xl border border-neutral-800">
+      <p class="text-[10px] text-neutral-500 uppercase tracking-wider m-0 mb-1">
+        Total Materials
       </p>
-      <p class="text-2xl font-bold text-emerald-400 m-0">
+      <p class="text-lg font-semibold text-white m-0">
         ₹{{ totalMaterialCost | number: "1.0-0" }}
       </p>
+      @if (activeWork && totalEstimatedMaterialCost > 0) {
+        <p
+          class="text-[9px] mt-1 m-0 font-medium"
+          [ngClass]="
+            totalMaterialCost > totalEstimatedMaterialCost
+              ? 'text-red-400'
+              : 'text-neutral-500'
+          "
+        >
+          Est. Budget: ₹{{ totalEstimatedMaterialCost | number: "1.0-0" }}
+        </p>
+      }
     </div>
-
-    <!-- Ledger Transactions Card -->
-    <div class="surface-card p-4 rounded-xl flex flex-col justify-center">
-      <p class="text-[11px] text-neutral-400 uppercase tracking-wider mb-1 m-0">
-        Ledger Total
+    <div class="bg-neutral-900 p-4 rounded-xl border border-neutral-800">
+      <p class="text-[10px] text-neutral-500 uppercase tracking-wider m-0 mb-1">
+        Labor / Contracts
       </p>
-      <p class="text-2xl font-bold text-blue-400 m-0">
-        ₹{{ totalTransactions | number: "1.0-0" }}
+      <p class="text-lg font-semibold text-white m-0">
+        ₹{{ totalServiceCharge | number: "1.0-0" }}
       </p>
+      @if (activeWork) {
+        <p class="text-[9px] text-neutral-500 m-0 mt-1">
+          {{ activeWork.serviceQty }} {{ activeWork.serviceType }} &#64; ₹{{
+            activeWork.serviceRate
+          }}
+        </p>
+      }
     </div>
   </div>
 
+  <!-- NEW: Planned vs Actual Estimations (Only visible if a specific project is selected) -->
+  @if (activeWork && progressData.length > 0) {
+    <div
+      class="bg-neutral-800 p-5 rounded-xl border border-neutral-700 shadow-sm mb-6"
+    >
+      <h2
+        class="text-sm font-semibold text-neutral-300 mb-4 uppercase tracking-wider"
+      >
+        Material Budget Health
+      </h2>
+
+      <div class="flex flex-col gap-4">
+        @for (item of progressData; track item.materialName) {
+          <div>
+            <div class="flex justify-between items-end mb-1">
+              <h4 class="text-white font-medium text-sm m-0">
+                {{ item.materialName }}
+              </h4>
+              <div class="text-xs text-neutral-400">
+                <span
+                  [ngClass]="
+                    item.actualQty > item.estimatedQty
+                      ? 'text-red-400 font-bold'
+                      : 'text-white'
+                  "
+                  >{{ item.actualQty }}</span
+                >
+                / {{ item.estimatedQty || 0 }} {{ item.unit }}
+              </div>
+            </div>
+
+            <nz-progress
+              [nzPercent]="item.percent > 100 ? 100 : item.percent"
+              [nzShowInfo]="false"
+              [nzStatus]="
+                item.actualQty > item.estimatedQty ? 'exception' : 'active'
+              "
+              [nzStrokeColor]="
+                item.actualQty > item.estimatedQty ? '#f87171' : '#60a5fa'
+              "
+              nzSize="small"
+              class="block"
+            >
+            </nz-progress>
+
+            @if (item.actualQty > item.estimatedQty) {
+              <p class="text-[10px] text-red-400 mt-1 m-0">
+                <span nz-icon nzType="warning"></span> Over budget by
+                {{ item.actualQty - item.estimatedQty }} {{ item.unit }}
+              </p>
+            } @else if (item.estimatedQty === 0) {
+              <p class="text-[10px] text-orange-400 mt-1 m-0">
+                <span nz-icon nzType="info-circle"></span> Unplanned material
+              </p>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+
   <!-- Spend Analytics Chart -->
   <div
-    class="bg-neutral-800 p-5 rounded-xl border border-neutral-700 shadow-sm mb-8"
+    class="bg-neutral-800 p-5 rounded-xl border border-neutral-700 shadow-sm mb-6"
   >
     <h2
       class="text-sm font-semibold text-neutral-300 mb-4 uppercase tracking-wider"
     >
       Spend Breakdown
     </h2>
-
     @if (pieChartData.labels && pieChartData.labels.length > 0) {
       <div class="h-52 relative">
         <canvas
@@ -106,8 +184,7 @@
           [data]="pieChartData"
           [options]="pieChartOptions"
           [type]="'doughnut'"
-        >
-        </canvas>
+        ></canvas>
       </div>
     } @else {
       <div class="text-center text-neutral-500 py-6">

@@ -58,18 +58,7 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
   templateUrl: './materials.component.html',
 })
 export class MaterialsComponent implements OnInit, OnDestroy {
-  readonly MATERIAL_OPTIONS = [
-    'Cement',
-    'Bricks',
-    'Stone',
-    'Sand',
-    '8 Bar',
-    '10 Bar',
-    '12 Bar',
-    '6 Bar',
-    '16 Bar',
-    '7x7 Ring',
-  ];
+  private workSub!: Subscription;
   readonly BUILDER_OPTIONS = ['SS', 'Nice', 'KGN'];
 
   readonly tabs: TabConfig[] = [
@@ -78,8 +67,18 @@ export class MaterialsComponent implements OnInit, OnDestroy {
     { label: 'By Builder', value: 'builder' },
   ];
 
+  readonly DELIVERY_DEFAULTS: Record<string, number> = {
+    SS: 160,
+    Nice: 150,
+    KGN: 300,
+    Sukhchand: 0,
+  };
+
   dateGroups: any[] = [];
   isLoading = true;
+
+  dynamicMaterialOptions: string[] = [];
+  dynamicPriceDefaults: Record<string, number> = {};
 
   // Form States
   isDrawerVisible = false;
@@ -115,13 +114,22 @@ export class MaterialsComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
   ) {}
 
-  ngOnInit(): void {
+  async ngOnInit() {
     this.initForm();
-    this.loadMaterials();
+    await this.loadMasterData();
+    this.workSub = this.db.activeWorkId$.subscribe(async () => {
+      await this.loadMaterials();
+    });
 
     this.filterSub = this.filterForm.valueChanges.subscribe(() => {
       this.applyFilters();
     });
+  }
+
+  async loadMasterData() {
+    this.dynamicPriceDefaults = await this.db.getMaterialDefaults();
+    this.dynamicMaterialOptions = Object.keys(this.dynamicPriceDefaults);
+    this.cdr.detectChanges();
   }
 
   initForm(): void {
@@ -133,12 +141,44 @@ export class MaterialsComponent implements OnInit, OnDestroy {
       totalPrice: [{ value: 0, disabled: true }],
       deliveryDate: [new Date(), [Validators.required]],
       builderName: [null, [Validators.required]],
+      deliveryCharge: [0, [Validators.required, Validators.min(0)]],
     });
+
+    this.materialForm
+      .get('qty')
+      ?.valueChanges.subscribe(() => this.calculateTotal());
+    this.materialForm
+      .get('unitPrice')
+      ?.valueChanges.subscribe(() => this.calculateTotal());
+    this.materialForm
+      .get('deliveryCharge')
+      ?.valueChanges.subscribe(() => this.calculateTotal());
 
     this.filterForm = this.fb.group({
       materials: [[]],
       builders: [[]],
       dateRange: [[]],
+    });
+
+    // Auto-fill delivery charge based on selected builder
+    this.materialForm.get('builderName')?.valueChanges.subscribe((builder) => {
+      if (builder && this.DELIVERY_DEFAULTS[builder] !== undefined) {
+        // Update the charge (which automatically triggers calculateTotal via the subscription above)
+        this.materialForm.patchValue(
+          { deliveryCharge: this.DELIVERY_DEFAULTS[builder] },
+          { emitEvent: true }, // Ensure calculateTotal fires
+        );
+      }
+    });
+
+    // Auto-fill unit price based on selected material name
+    this.materialForm.get('name')?.valueChanges.subscribe((matName) => {
+      if (matName && this.dynamicPriceDefaults[matName] !== undefined) {
+        this.materialForm.patchValue(
+          { unitPrice: this.dynamicPriceDefaults[matName] },
+          { emitEvent: true },
+        );
+      }
     });
 
     this.formSub = this.materialForm.valueChanges.subscribe((values) => {
@@ -148,6 +188,18 @@ export class MaterialsComponent implements OnInit, OnDestroy {
         .get('totalPrice')
         ?.setValue(qty * price, { emitEvent: false });
     });
+  }
+
+  calculateTotal(): void {
+    const qty = this.materialForm.get('qty')?.value || 0;
+    const price = this.materialForm.get('unitPrice')?.value || 0;
+    const delivery = this.materialForm.get('deliveryCharge')?.value || 0;
+
+    // Total = (Qty * Price) + Delivery Charge
+    this.materialForm.patchValue(
+      { totalPrice: qty * price + delivery },
+      { emitEvent: false },
+    );
   }
 
   async loadMaterials() {
@@ -279,20 +331,32 @@ export class MaterialsComponent implements OnInit, OnDestroy {
       'deliveryDate',
     );
   }
-
   async submitForm() {
     if (this.materialForm.valid) {
       const formValue = this.materialForm.getRawValue();
 
-      if (!(formValue.deliveryDate instanceof Date)) {
-        formValue.deliveryDate = new Date(formValue.deliveryDate);
+      const qty = formValue.qty || 0;
+      const price = formValue.unitPrice || 0;
+      const delivery = formValue.deliveryCharge || 0;
+
+      // 1. BULLETPROOF OBJECT CREATION: Bypass Angular form restrictions
+      const materialToSave = {
+        ...formValue,
+        totalPrice: qty * price + delivery,
+        workId: this.db.activeWorkId$.value || null, // Safely inject the context
+      };
+
+      // 2. Format Date
+      if (!(materialToSave.deliveryDate instanceof Date)) {
+        materialToSave.deliveryDate = new Date(materialToSave.deliveryDate);
       }
 
-      if (formValue.id) {
-        await this.db.updateMaterial(formValue);
+      // 3. Route to SQLite
+      if (materialToSave.id) {
+        await this.db.updateMaterial(materialToSave);
       } else {
-        delete formValue.id;
-        await this.db.addMaterial(formValue);
+        delete materialToSave.id;
+        await this.db.addMaterial(materialToSave);
       }
 
       this.closeDrawer();
@@ -482,5 +546,6 @@ export class MaterialsComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.formSub) this.formSub.unsubscribe();
     if (this.filterSub) this.filterSub.unsubscribe();
+    if (this.workSub) this.workSub.unsubscribe();
   }
 }

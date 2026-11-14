@@ -365,7 +365,7 @@
               class="w-full px-3 py-2 bg-neutral-800 border border-neutral-700 text-white rounded-md text-base focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 appearance-none cursor-pointer"
             >
               <option value="" disabled selected>Select material</option>
-              @for (mat of MATERIAL_OPTIONS; track mat) {
+              @for (mat of dynamicMaterialOptions; track mat) {
                 <option [value]="mat">{{ mat }}</option>
               }
             </select>
@@ -458,6 +458,21 @@
             ) {
               <p class="text-red-500 text-xs mt-1">Please select a builder</p>
             }
+          </div>
+
+          <div class="mb-4">
+            <nz-form-item class="mb-0">
+              <nz-form-label nzRequired>Delivery (₹)</nz-form-label>
+              <nz-form-control nzErrorTip="Required">
+                <nz-input-number
+                  formControlName="deliveryCharge"
+                  [nzMin]="0"
+                  [nzStep]="10"
+                  class="w-full bg-neutral-800 border-neutral-700 text-white"
+                  nzSize="large"
+                ></nz-input-number>
+              </nz-form-control>
+            </nz-form-item>
           </div>
 
           <!-- Date Picker (Flatpickr) -->

@@ -21,6 +21,7 @@ import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-transactions',
@@ -39,7 +40,8 @@ import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
   ],
   templateUrl: './transactions.component.html',
 })
-export class TransactionsComponent implements OnInit {
+export class TransactionsComponent implements OnInit, OnDestroy {
+  private workSub!: Subscription;
   readonly RECEIVER_OPTIONS = ['SS', 'Nice', 'KGN', 'Sukhchand'];
 
   readonly tabs: TabConfig[] = [
@@ -80,7 +82,9 @@ export class TransactionsComponent implements OnInit {
 
   ngOnInit(): void {
     this.initForm();
-    this.loadTransactions();
+    this.workSub = this.db.activeWorkId$.subscribe(async () => {
+      await this.loadTransactions();
+    });
   }
 
   initForm(): void {
@@ -201,23 +205,27 @@ export class TransactionsComponent implements OnInit {
     if (this.transactionForm.valid) {
       const formValue = this.transactionForm.getRawValue();
 
-      if (!(formValue.dateTime instanceof Date)) {
-        formValue.dateTime = new Date(formValue.dateTime);
+      // 1. BULLETPROOF OBJECT CREATION
+      const transactionToSave = {
+        ...formValue,
+        workId: this.db.activeWorkId$.value || null, // Safely inject the context
+      };
+
+      // 2. Format Date
+      if (!(transactionToSave.dateTime instanceof Date)) {
+        transactionToSave.dateTime = new Date(transactionToSave.dateTime);
       }
 
-      if (formValue.id) {
-        await this.db.updateTransaction(formValue);
+      // 3. Route to SQLite
+      if (transactionToSave.id) {
+        await this.db.updateTransaction(transactionToSave);
       } else {
-        delete formValue.id;
-        await this.db.addTransaction(formValue);
+        delete transactionToSave.id;
+        await this.db.addTransaction(transactionToSave);
       }
 
       this.closeDrawer();
       await this.loadTransactions();
-
-      if (this.isDetailVisible) {
-        await this.updateDetailView();
-      }
     }
   }
 
@@ -240,5 +248,8 @@ export class TransactionsComponent implements OnInit {
       'datetimeInput',
       'dateTime',
     );
+  }
+  ngOnDestroy(): void {
+    if (this.workSub) this.workSub.unsubscribe();
   }
 }

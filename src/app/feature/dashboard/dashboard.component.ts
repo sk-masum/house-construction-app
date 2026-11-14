@@ -1,6 +1,7 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
-import { DbService } from '../../core/services/db.service';
+import { DbService, Work } from '../../core/services/db.service';
 import { BackupService } from '../../core/services/backup.service';
 
 import { NzStatisticModule } from 'ng-zorro-antd/statistic';
@@ -16,6 +17,8 @@ import {
 } from 'ng2-charts';
 import { ChartConfiguration, ChartData } from 'chart.js';
 
+import { NzProgressModule } from 'ng-zorro-antd/progress';
+
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -27,17 +30,26 @@ import { ChartConfiguration, ChartData } from 'chart.js';
     NzButtonModule,
     NzIconModule,
     BaseChartDirective,
+    NzProgressModule,
   ],
   providers: [provideCharts(withDefaultRegisterables())],
   templateUrl: './dashboard.component.html',
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
+  private workSub!: Subscription;
   totalMaterialCost = 0;
   totalTransactions = 0;
   recentActivity: any[] = [];
 
+  activeWork: Work | null = null;
+  totalServiceCharge = 0;
+  progressData: any[] = [];
+  totalLiability = 0; // Material + Labor
+
   outstandingBalance = 0;
   isAdvance = false;
+
+  totalEstimatedMaterialCost = 0;
 
   pieChartData: ChartData<'doughnut'> = {
     labels: [],
@@ -71,29 +83,59 @@ export class DashboardComponent implements OnInit {
   ) {}
 
   async ngOnInit() {
-    await this.loadDashboardData();
+    this.workSub = this.db.activeWorkId$.subscribe(async () => {
+      await this.loadDashboardData();
+    });
   }
 
   async loadDashboardData() {
-    // 1. Fetch using the new SQLite methods (empty object means no filters)
+    const currentWorkId = this.db.activeWorkId$.value;
+
+    // 1. Fetch Context-Specific Data
+    if (currentWorkId) {
+      this.activeWork = (await this.db.getWorkById(currentWorkId)) || null;
+      this.progressData = await this.db.getWorkMaterialProgress(currentWorkId);
+      this.totalServiceCharge = this.activeWork?.totalServiceCharge || 0;
+
+      const ests = await this.db.getEstimationsForWork(currentWorkId);
+      this.totalEstimatedMaterialCost = ests.reduce(
+        (sum, e) => sum + (e.totalCost || 0),
+        0,
+      );
+    } else {
+      this.activeWork = null;
+      this.progressData = [];
+      this.totalEstimatedMaterialCost = 0;
+      // Global view: sum up all service charges from all projects
+      const allWorks = await this.db.getWorks();
+      this.totalServiceCharge = allWorks.reduce(
+        (sum, w) => sum + (w.totalServiceCharge || 0),
+        0,
+      );
+    }
+
+    // 2. Fetch using the new SQLite methods (empty object means no filters)
     const [materials, transactions, materialAgg] = await Promise.all([
       this.db.getFilteredMaterials({}),
       this.db.getFilteredTransactions({}),
       this.db.getMaterialSummaries({}), // NEW: Get the grouped data directly!
     ]);
 
-    // 2. Calculate Totals
+    // 3. Financial Math
     this.totalMaterialCost = materials.reduce(
-      (sum, item) => sum + (item.totalPrice || 0),
+      (sum, m) => sum + (m.totalPrice || 0),
       0,
     );
     this.totalTransactions = transactions.reduce(
-      (sum, item) => sum + (item.amount || 0),
+      (sum, t) => sum + (t.amount || 0),
       0,
     );
 
-    // 3. Calculate Global Balance
-    this.outstandingBalance = this.totalMaterialCost - this.totalTransactions;
+    // Liability = Material Costs + Contractor Service Charge
+    this.totalLiability = this.totalMaterialCost + this.totalServiceCharge;
+
+    // Balance = Liability - Payments
+    this.outstandingBalance = this.totalLiability - this.totalTransactions;
     this.isAdvance = this.outstandingBalance < 0;
 
     if (materialAgg.length > 0) {
@@ -106,37 +148,34 @@ export class DashboardComponent implements OnInit {
         '#facc15',
         '#a3e635',
       ];
-
       this.pieChartData = {
         labels: materialAgg.map((g) => g.name),
         datasets: [
           {
             data: materialAgg.map((g) => g.totalPrice),
             backgroundColor: tailwindColors,
-            borderWidth: 0, // Removes white borders for dark mode
+            borderWidth: 0,
             hoverOffset: 6,
           },
         ],
       };
+    } else {
+      this.pieChartData = { labels: [], datasets: [{ data: [] }] };
     }
 
-    // 4. Map Materials for Timeline
+    // 5. Update Timeline
     const mappedMaterials = materials.map((m) => ({
-      title: `Material: ${m.name} (${m.qty})`,
-      subtitle: `₹${m.totalPrice} • ${m.builderName}`,
+      title: `Material: ${m.name}`,
+      subtitle: `₹${m.totalPrice}`,
       date: m.deliveryDate,
       color: 'blue',
     }));
-
-    // 5. Map Transactions for Timeline
     const mappedTrans = transactions.map((t) => ({
-      title: `Ledger Paid: ${t.receiver}`,
-      subtitle: `₹${t.amount} • From: ${t.provider}`,
+      title: `Paid: ${t.receiver}`,
+      subtitle: `₹${t.amount}`,
       date: t.dateTime,
       color: 'green',
     }));
-
-    // 6. Merge, Sort by Newest, and Keep Top 5
     this.recentActivity = [...mappedMaterials, ...mappedTrans]
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       .slice(0, 5);
@@ -170,6 +209,13 @@ export class DashboardComponent implements OnInit {
         alert('Error importing ledger.');
       }
       event.target.value = '';
+    }
+  }
+
+  ngOnDestroy() {
+    // Clean up the listener when you leave the dashboard
+    if (this.workSub) {
+      this.workSub.unsubscribe();
     }
   }
 }
