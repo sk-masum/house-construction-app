@@ -1,23 +1,30 @@
 <div class="p-4 pb-[80px]">
   <div class="flex justify-between items-center mb-6">
     <h1 class="text-2xl font-bold m-0 text-white">Projects</h1>
-    <div class="flex gap-1">
+    <div class="flex gap-2 items-center">
       <button
         nz-button
         nzType="default"
         nzShape="circle"
         (click)="openPriceManager()"
-        class="bg-neutral-800 text-white border-neutral-700"
+        class="!h-10 !w-10 !p-0 !inline-flex !items-center !justify-center !border-neutral-700 !bg-neutral-800/50 hover:!border-emerald-400 hover:!bg-neutral-700 hover:!text-emerald-400 !text-neutral-400 transition-all"
       >
-        <span nz-icon nzType="setting"></span>
+        <span
+          nz-icon
+          nzType="setting"
+          nzTheme="outline"
+          class="text-lg !leading-none"
+        ></span>
       </button>
       <button
         nz-button
         nzType="primary"
         nzShape="round"
+        class="theme-action-button"
         (click)="openNewWork()"
       >
-        <span nz-icon nzType="plus"></span> New
+        <span nz-icon nzType="plus"></span>
+        <span>Add</span>
       </button>
     </div>
   </div>
