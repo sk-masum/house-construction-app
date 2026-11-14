@@ -69,27 +69,27 @@
       </button>
     </div>
     <nz-dropdown-menu #menu="nzDropdownMenu">
-      <ul nz-menu class="bg-neutral-900 border border-neutral-700">
+      <ul nz-menu class="bg-neutral-900 border border-neutral-700 text-white">
         <!-- Data Export Section -->
-        <li nz-menu-item (click)="exportMaterials()">
+        <li nz-menu-item class="text-white" (click)="exportMaterials()">
           <span nz-icon nzType="download" nzTheme="outline"></span>
-          <span>Export Materials</span>
+          <span class="ml-1">Export Materials</span>
         </li>
-        <li nz-menu-item (click)="exportTransactions()">
+        <li nz-menu-item class="text-white" (click)="exportTransactions()">
           <span nz-icon nzType="download" nzTheme="outline"></span>
-          <span>Export Ledger</span>
+          <span class="ml-1">Export Ledger</span>
         </li>
-        
+
         <li nz-menu-divider></li>
-        
+
         <!-- Data Import Section -->
-        <li nz-menu-item (click)="importMaterialsClick()">
+        <li nz-menu-item class="text-white" (click)="importMaterialsClick()">
           <span nz-icon nzType="upload" nzTheme="outline"></span>
-          <span>Import Materials</span>
+          <span class="ml-1">Import Materials</span>
         </li>
-        <li nz-menu-item (click)="importTransactionsClick()">
+        <li nz-menu-item class="text-white" (click)="importTransactionsClick()">
           <span nz-icon nzType="upload" nzTheme="outline"></span>
-          <span>Import Ledger</span>
+          <span class="ml-1">Import Ledger</span>
         </li>
       </ul>
     </nz-dropdown-menu>
