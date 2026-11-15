@@ -20,7 +20,7 @@ export class DatepickerComponent implements ControlValueAccessor {
   @Input() mode: 'date' | 'datetime' = 'date'; // 'date' or 'datetime'
   @Input() placeholder = 'Select date...';
   @Input() triggerClass =
-    'bg-neutral-800 py-2.5 rounded-lg border border-neutral-700 hover:border-neutral-600 w-full';
+    'bg-neutral-800 px-4 py-2.5 rounded-lg border border-neutral-700 hover:border-neutral-600 w-full flex items-center justify-between transition-colors';
 
   internalStringValue = '';
   isDisabled = false;

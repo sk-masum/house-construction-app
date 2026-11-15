@@ -1,33 +1,32 @@
-<div class="relative w-full">
-  <!-- The Native Input Element -->
-  <!-- We use absolute opacity-0 on the internal picker icon so it opens anywhere you tap -->
+<!-- The Visible Tailwind Container -->
+<div
+  class="relative overflow-hidden cursor-pointer focus-within:border-emerald-500 {{
+    triggerClass
+  }}"
+  [ngClass]="{ 'opacity-50 pointer-events-none': isDisabled }"
+>
+  <!-- 1. Beautifully Styled Fake Text -->
+  <span
+    class="truncate text-sm"
+    [ngClass]="internalStringValue ? 'text-white' : 'text-neutral-500'"
+  >
+    {{ internalStringValue ? internalStringValue : placeholder }}
+  </span>
+
+  <!-- 2. Custom Icon -->
+  <span
+    nz-icon
+    [nzType]="mode === 'datetime' ? 'clock-circle' : 'calendar'"
+    class="text-neutral-400 text-sm ml-2 shrink-0"
+  ></span>
+
+  <!-- 3. The Invisible Native Trigger -->
+  <!-- Because it is absolute, it has ZERO impact on layout width -->
   <input
     [type]="mode === 'date' ? 'date' : 'datetime-local'"
     [value]="internalStringValue"
     (input)="onInputChange($event)"
     [disabled]="isDisabled"
-    class="block min-w-0 w-full items-center text-white px-4 text-sm transition-all focus:outline-none focus:border-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed appearance-none {{
-      triggerClass
-    }} [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+    class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10 p-0 m-0 box-border"
   />
-
-  <!-- Custom Icon Overlay (Since we hid the native one) -->
-  <div
-    class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-neutral-400"
-  >
-    <span
-      nz-icon
-      [nzType]="mode === 'datetime' ? 'clock-circle' : 'calendar'"
-      class="text-sm"
-    ></span>
-  </div>
-
-  <!-- Floating Placeholder if empty -->
-  @if (!internalStringValue) {
-    <div
-      class="absolute inset-y-0 left-0 flex items-center px-4 pointer-events-none text-neutral-500 text-sm"
-    >
-      {{ placeholder }}
-    </div>
-  }
 </div>
