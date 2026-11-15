@@ -183,35 +183,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  // --- CSV Import Handlers ---
-  async onMaterialFileSelected(event: any) {
-    const file = event.target.files[0];
-    if (file) {
-      try {
-        await this.backup.importMaterials(file);
-        await this.loadDashboardData();
-        alert('Materials imported successfully!');
-      } catch (error) {
-        alert('Error importing materials.');
-      }
-      event.target.value = '';
-    }
-  }
-
-  async onTransactionFileSelected(event: any) {
-    const file = event.target.files[0];
-    if (file) {
-      try {
-        await this.backup.importTransactions(file);
-        await this.loadDashboardData();
-        alert('Ledger imported successfully!');
-      } catch (error) {
-        alert('Error importing ledger.');
-      }
-      event.target.value = '';
-    }
-  }
-
   ngOnDestroy() {
     // Clean up the listener when you leave the dashboard
     if (this.workSub) {

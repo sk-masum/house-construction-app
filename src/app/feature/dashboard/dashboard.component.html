@@ -198,69 +198,6 @@
     }
   </div>
 
-  <!-- Data Management / Backup -->
-  <div class="mb-8">
-    <h2 class="text-lg font-semibold text-neutral-300 mb-4">
-      Data Backup & Restore
-    </h2>
-
-    <div class="grid grid-cols-2 gap-3 mb-3">
-      <button
-        nz-button
-        nzType="default"
-        class="backup-button backup-button-export"
-        (click)="backup.exportMaterials()"
-      >
-        <span nz-icon nzType="download"></span>
-        <span>Export Materials</span>
-      </button>
-      <button
-        nz-button
-        nzType="default"
-        class="backup-button backup-button-import"
-        (click)="materialUpload.click()"
-      >
-        <span nz-icon nzType="upload"></span>
-        <span>Import Materials</span>
-      </button>
-      <input
-        #materialUpload
-        type="file"
-        accept=".csv"
-        class="hidden"
-        (change)="onMaterialFileSelected($event)"
-      />
-    </div>
-
-    <div class="grid grid-cols-2 gap-3">
-      <button
-        nz-button
-        nzType="default"
-        class="backup-button backup-button-export"
-        (click)="backup.exportTransactions()"
-      >
-        <span nz-icon nzType="download"></span>
-        <span>Export Ledger</span>
-      </button>
-      <button
-        nz-button
-        nzType="default"
-        class="backup-button backup-button-import"
-        (click)="transactionUpload.click()"
-      >
-        <span nz-icon nzType="upload"></span>
-        <span>Import Ledger</span>
-      </button>
-      <input
-        #transactionUpload
-        type="file"
-        accept=".csv"
-        class="hidden"
-        (change)="onTransactionFileSelected($event)"
-      />
-    </div>
-  </div>
-
   <!-- Unified Activity Timeline -->
   <h2 class="text-lg font-semibold text-neutral-300 mb-4">Recent Activity</h2>
 

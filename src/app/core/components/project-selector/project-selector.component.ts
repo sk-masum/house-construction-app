@@ -3,8 +3,8 @@ import { CommonModule } from '@angular/common';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { Subscription } from 'rxjs';
-import { DbService, Work } from '../../../core/services/db.service'; // Adjust path if needed
-import { SelectComponent } from '../select/select.component';
+import { DbService, Work } from '../../services/db.service'; // Adjust path if needed
+import { SelectComponent } from '../../../shared/components/select/select.component';
 import { FormsModule } from '@angular/forms';
 
 @Component({
