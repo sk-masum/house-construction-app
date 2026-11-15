@@ -1,6 +1,6 @@
-<div class="p-4 pb-[80px]">
+<div class="px-4 pt-4 pb-[80px]">
   <div class="flex justify-between items-center mb-6">
-    <h1 class="text-2xl font-bold m-0 text-white">Projects</h1>
+    <h1 class="text-lg font-semibold m-0 text-white">Projects</h1>
     <div class="flex gap-2 items-center">
       <button
         nz-button
@@ -107,11 +107,10 @@
     (nzOnClose)="closeDrawer()"
   >
     <ng-container *nzDrawerContent>
-      <nz-tabset [(nzSelectedIndex)]="activeTab">
-        <!-- STEP 1: Contract Details -->
-        <nz-tab
-          nzTitle="1. Contract Details"
-          [nzDisabled]="currentWorkId !== null"
+      <sk-stepper #stepper>
+        <cdk-step
+          label="Contract Details"
+          [ariaDisabled]="currentWorkId !== null"
         >
           <form
             nz-form
@@ -123,24 +122,22 @@
             <nz-form-item>
               <nz-form-label nzRequired>Project Name</nz-form-label>
               <nz-form-control>
-                <input
-                  nz-input
+                <sk-textfield
                   formControlName="name"
                   placeholder="e.g., 1st Floor Plaster"
-                  class="bg-neutral-800 border-neutral-700 text-white"
-                />
+                  class="w-full"
+                ></sk-textfield>
               </nz-form-control>
             </nz-form-item>
 
             <nz-form-item>
               <nz-form-label nzRequired>Contractor</nz-form-label>
               <nz-form-control>
-                <input
-                  nz-input
+                <sk-textfield
                   formControlName="contractorName"
                   placeholder="e.g., Sukhchand"
-                  class="bg-neutral-800 border-neutral-700 text-white"
-                />
+                  class="w-full"
+                ></sk-textfield>
               </nz-form-control>
             </nz-form-item>
 
@@ -148,21 +145,23 @@
               <nz-form-item>
                 <nz-form-label nzRequired>Service Type</nz-form-label>
                 <nz-form-control>
-                  <nz-select formControlName="serviceType">
-                    @for (opt of SERVICE_TYPES; track opt) {
-                      <nz-option [nzValue]="opt" [nzLabel]="opt"></nz-option>
-                    }
-                  </nz-select>
+                  <app-select
+                    formControlName="serviceType"
+                    [options]="SERVICE_TYPES"
+                    class="w-full"
+                  ></app-select>
                 </nz-form-control>
               </nz-form-item>
 
               <nz-form-item>
                 <nz-form-label nzRequired>Rate (₹)</nz-form-label>
                 <nz-form-control>
-                  <nz-input-number
+                  <sk-textfield
                     formControlName="serviceRate"
-                    class="w-full bg-neutral-800 text-white"
-                  ></nz-input-number>
+                    placeholder="Rate"
+                    class="w-full"
+                    type="number"
+                  ></sk-textfield>
                 </nz-form-control>
               </nz-form-item>
             </div>
@@ -170,10 +169,12 @@
             <nz-form-item>
               <nz-form-label nzRequired>Quantity / Area</nz-form-label>
               <nz-form-control>
-                <nz-input-number
+                <sk-textfield
                   formControlName="serviceQty"
-                  class="w-full bg-neutral-800 text-white"
-                ></nz-input-number>
+                  placeholder="Quantity / Area"
+                  class="w-full"
+                  type="number"
+                ></sk-textfield>
               </nz-form-control>
             </nz-form-item>
 
@@ -196,17 +197,18 @@
               nzBlock
               nzSize="large"
               type="submit"
+              class="theme-action-button"
               [disabled]="!workForm.valid"
             >
               Save & Continue
             </button>
           </form>
-        </nz-tab>
+        </cdk-step>
 
         <!-- STEP 2: Material Estimations -->
-        <nz-tab
-          nzTitle="2. Material Estimations"
-          [nzDisabled]="currentWorkId === null"
+        <cdk-step
+          label="Material Estimations"
+          [completed]="currentEstimations.length > 0"
         >
           <!-- Saved Estimations List -->
           <div class="flex flex-col gap-2 mt-4 mb-6">
@@ -265,31 +267,28 @@
               (ngSubmit)="addEstimation()"
               nzLayout="vertical"
             >
-              <nz-form-item class="mb-3">
-                <nz-select
+              <nz-form-item class="mb-3 inline-grid w-full">
+                <app-select
                   formControlName="materialName"
-                  nzPlaceHolder="Select Material (e.g., Cement)"
-                >
-                  @for (mat of dynamicMaterialOptions; track mat) {
-                    <nz-option [nzValue]="mat" [nzLabel]="mat"></nz-option>
-                  }
-                </nz-select>
+                  [options]="dynamicMaterialOptions"
+                  placeholder="Select Material (e.g., Cement)"
+                ></app-select>
               </nz-form-item>
 
               <div class="grid grid-cols-2 gap-3 mb-3">
-                <nz-form-item class="mb-0">
-                  <nz-input-number
+                <nz-form-item class="mb-0 inline-grid w-full">
+                  <sk-textfield
                     formControlName="qty"
-                    nzPlaceHolder="Qty"
-                    class="w-full bg-neutral-800 text-white"
-                  ></nz-input-number>
+                    placeholder="Qty"
+                    type="number"
+                  ></sk-textfield>
                 </nz-form-item>
-                <nz-form-item class="mb-0">
-                  <nz-select formControlName="unit" nzPlaceHolder="Unit">
-                    @for (unit of UNIT_OPTIONS; track unit) {
-                      <nz-option [nzValue]="unit" [nzLabel]="unit"></nz-option>
-                    }
-                  </nz-select>
+                <nz-form-item class="mb-0 inline-grid w-full">
+                  <app-select
+                    formControlName="unit"
+                    [options]="UNIT_OPTIONS"
+                    placeholder="Unit"
+                  ></app-select>
                 </nz-form-item>
               </div>
 
@@ -309,7 +308,7 @@
                 nzType="default"
                 nzBlock
                 [disabled]="!estForm.valid"
-                class="bg-neutral-800 text-white border-neutral-600 hover:text-emerald-400"
+                class="bg-neutral-800 text-white border-emerald-600 hover:text-emerald-400"
               >
                 <span nz-icon nzType="plus"></span> Add to Estimate
               </button>
@@ -321,13 +320,13 @@
             nzType="primary"
             nzBlock
             nzSize="large"
-            class="mt-6"
+            class="mt-6 theme-action-button"
             (click)="closeDrawer()"
           >
             Finish Setup
           </button>
-        </nz-tab>
-      </nz-tabset>
+        </cdk-step>
+      </sk-stepper>
     </ng-container>
   </nz-drawer>
 </div>
@@ -355,12 +354,12 @@
             <span class="text-white font-medium">{{ mat }}</span>
             <div class="flex items-center gap-2">
               <span class="text-neutral-500 text-xs">₹</span>
-              <nz-input-number
+              <sk-textfield
                 [(ngModel)]="dynamicPriceDefaults[mat]"
-                [nzMin]="0"
-                nzSize="small"
+                type="number"
+                min="0"
                 class="w-20 bg-neutral-900 text-white border-neutral-600"
-              ></nz-input-number>
+              ></sk-textfield>
             </div>
           </div>
         }
@@ -378,11 +377,12 @@
             placeholder="Name (e.g. Paint)"
             class="bg-neutral-800 border-neutral-600 text-white"
           />
-          <nz-input-number
+          <sk-textfield
             [(ngModel)]="newMaterialPrice"
-            nzPlaceHolder="Rate"
+            placeholder="Rate"
+            type="number"
             class="w-24 bg-neutral-800 border-neutral-600 text-white"
-          ></nz-input-number>
+          ></sk-textfield>
         </div>
       </div>
 

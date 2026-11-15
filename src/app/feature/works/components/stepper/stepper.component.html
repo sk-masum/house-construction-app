@@ -1,0 +1,50 @@
+<div class="flex flex-col w-full h-full">
+  <!-- 1. The Visual Progress Bar Header -->
+  <div class="flex items-center justify-between mb-8 px-6">
+    @for (step of steps; track step; let i = $index) {
+      <!-- Step Indicator -->
+      <div
+        class="flex flex-col items-center relative z-10 cursor-pointer"
+        (click)="selectStepByIndex(i)"
+      >
+        <div
+          class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300"
+          [ngClass]="{
+            'bg-emerald-500 text-neutral-900 ring-4 ring-emerald-500/20':
+              selectedIndex === i,
+            'bg-emerald-500/20 text-emerald-400': selectedIndex > i,
+            'bg-neutral-800 text-neutral-500 border border-neutral-700':
+              selectedIndex < i,
+          }"
+        >
+          @if (selectedIndex > i) {
+            <span nz-icon nzType="check" class="text-lg"></span>
+          } @else {
+            {{ i + 1 }}
+          }
+        </div>
+        <span
+          class="absolute top-12 text-[10px] uppercase tracking-wider font-semibold text-center transition-colors"
+          [ngClass]="
+            selectedIndex >= i ? 'text-neutral-300' : 'text-neutral-600'
+          "
+        >
+          {{ step.label }}
+        </span>
+      </div>
+
+      <!-- Connecting Line -->
+      @if (i < steps.length - 1) {
+        <div
+          class="flex-1 h-[2px] mx-4 transition-colors duration-300"
+          [ngClass]="selectedIndex > i ? 'bg-emerald-500' : 'bg-neutral-800'"
+        ></div>
+      }
+    }
+  </div>
+
+  <!-- 2. The Projected Step Content Area -->
+  <div class="flex-1 mt-4">
+    <ng-container [ngTemplateOutlet]="selected?.content || null"></ng-container>
+  </div>
+</div>

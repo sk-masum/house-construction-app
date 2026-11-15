@@ -31,24 +31,37 @@ body {
 }
 
 body::before {
-  content: '';
+  content: "";
   position: fixed;
   inset: 0;
   z-index: -1;
   pointer-events: none;
   background:
     radial-gradient(ellipse at 0% 0%, rgba(16, 185, 129, 0.2), transparent 55%),
-    radial-gradient(ellipse at 100% 45%, rgba(59, 130, 246, 0.16), transparent 60%),
-    radial-gradient(ellipse at 20% 100%, rgba(139, 92, 246, 0.14), transparent 55%),
+    radial-gradient(
+      ellipse at 100% 45%,
+      rgba(59, 130, 246, 0.16),
+      transparent 60%
+    ),
+    radial-gradient(
+      ellipse at 20% 100%,
+      rgba(139, 92, 246, 0.14),
+      transparent 55%
+    ),
     #171717;
 }
 
 .surface-card {
   border: 1px solid rgba(255, 255, 255, 0.1);
   background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01)),
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.05),
+      rgba(255, 255, 255, 0.01)
+    ),
     rgba(22, 28, 34, 0.78);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12),
+  box-shadow:
+    0 6px 20px rgba(0, 0, 0, 0.12),
     inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
@@ -68,7 +81,9 @@ body::before {
   background-color: #1c2528;
 }
 
-@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+@supports (
+  (-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))
+) {
   .date-group-header {
     background-color: rgba(23, 23, 23, 0.65);
     -webkit-backdrop-filter: blur(16px) saturate(150%);
@@ -93,7 +108,7 @@ body::before {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  height: 52px;
+  height: 40px;
   padding: 0 20px !important;
   border-radius: 999px;
   font-weight: 600;
@@ -106,7 +121,11 @@ body::before {
 
   &:not(:disabled) {
     border-color: rgba(110, 231, 183, 0.35);
-    background: linear-gradient(145deg, rgba(52, 211, 153, 0.24), rgba(16, 185, 129, 0.1));
+    background: linear-gradient(
+      145deg,
+      rgba(52, 211, 153, 0.24),
+      rgba(16, 185, 129, 0.1)
+    );
     color: #a7f3d0;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
 
@@ -134,9 +153,14 @@ body::before {
 
 /* 1. Bottom Drawer Overrides */
 .ant-drawer-content {
-  padding: var(--safe-area-top) var(--safe-area-right) var(--safe-area-bottom) var(--safe-area-left);
+  padding: var(--safe-area-top) var(--safe-area-right) var(--safe-area-bottom)
+    var(--safe-area-left);
   background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01)),
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.05),
+      rgba(255, 255, 255, 0.01)
+    ),
     rgba(22, 28, 34, 0.78) !important;
   color: #f5f5f5 !important; /* Tailwind neutral-100 */
 }
@@ -145,10 +169,16 @@ body::before {
   padding-top: 0;
 }
 
-@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+@supports (
+  (-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))
+) {
   .ant-drawer-content {
     background:
-      linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01)),
+      linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.05),
+        rgba(255, 255, 255, 0.01)
+      ),
       rgba(22, 28, 34, 0.5) !important;
     -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
     backdrop-filter: blur(24px) saturate(180%) !important;
@@ -157,15 +187,25 @@ body::before {
 
 .ant-drawer-header {
   background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01)),
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.05),
+      rgba(255, 255, 255, 0.01)
+    ),
     rgba(22, 28, 34, 0.78) !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
-@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+@supports (
+  (-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))
+) {
   .ant-drawer-header {
     background:
-      linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01)),
+      linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.05),
+        rgba(255, 255, 255, 0.01)
+      ),
       rgba(22, 28, 34, 0.5) !important;
     -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
     backdrop-filter: blur(24px) saturate(180%) !important;
@@ -187,7 +227,8 @@ body::before {
 
 /* Drawer wrapper and mask */
 .ant-drawer-wrapper-body {
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.32),
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.32),
     inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
 }
 
@@ -195,7 +236,11 @@ body::before {
 @media (prefers-reduced-transparency: reduce) {
   .ant-drawer-content {
     background:
-      linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01)),
+      linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.05),
+        rgba(255, 255, 255, 0.01)
+      ),
       rgba(22, 28, 34, 0.85) !important;
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
@@ -203,7 +248,11 @@ body::before {
 
   .ant-drawer-header {
     background:
-      linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01)),
+      linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.05),
+        rgba(255, 255, 255, 0.01)
+      ),
       rgba(22, 28, 34, 0.85) !important;
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
@@ -303,15 +352,19 @@ body::before {
   font-weight: 500;
   font-size: 14px;
   width: 100%;
-  
+
   /* Glass-morphism background */
   background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01)),
+    linear-gradient(
+      145deg,
+      rgba(255, 255, 255, 0.05),
+      rgba(255, 255, 255, 0.01)
+    ),
     rgba(38, 38, 38, 0.78) !important;
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
   color: #d4d4d4 !important;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  
+
   transition: all 180ms ease;
 
   > .anticon {
@@ -325,10 +378,16 @@ body::before {
   }
 }
 
-@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+@supports (
+  (-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))
+) {
   .backup-button.ant-btn-default {
     background:
-      linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01)),
+      linear-gradient(
+        145deg,
+        rgba(255, 255, 255, 0.05),
+        rgba(255, 255, 255, 0.01)
+      ),
       rgba(38, 38, 38, 0.5) !important;
     -webkit-backdrop-filter: blur(16px) saturate(150%) !important;
     backdrop-filter: blur(16px) saturate(150%) !important;
@@ -345,11 +404,17 @@ body::before {
   color: #6ee7b7 !important;
 }
 
-@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+@supports (
+  (-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))
+) {
   .backup-button-export:hover,
   .backup-button-export:focus {
     background:
-      linear-gradient(145deg, rgba(16, 185, 129, 0.08), rgba(16, 185, 129, 0.02)),
+      linear-gradient(
+        145deg,
+        rgba(16, 185, 129, 0.08),
+        rgba(16, 185, 129, 0.02)
+      ),
       rgba(38, 38, 38, 0.6) !important;
     -webkit-backdrop-filter: blur(16px) saturate(150%) !important;
     backdrop-filter: blur(16px) saturate(150%) !important;
@@ -371,11 +436,17 @@ body::before {
   color: #60a5fa !important;
 }
 
-@supports ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+@supports (
+  (-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))
+) {
   .backup-button-import:hover,
   .backup-button-import:focus {
     background:
-      linear-gradient(145deg, rgba(59, 130, 246, 0.08), rgba(59, 130, 246, 0.02)),
+      linear-gradient(
+        145deg,
+        rgba(59, 130, 246, 0.08),
+        rgba(59, 130, 246, 0.02)
+      ),
       rgba(38, 38, 38, 0.6) !important;
     -webkit-backdrop-filter: blur(16px) saturate(150%) !important;
     backdrop-filter: blur(16px) saturate(150%) !important;
@@ -395,7 +466,7 @@ body::before {
   .backup-button {
     transition: none;
   }
-  
+
   .backup-button:active {
     transform: none;
   }

@@ -26,7 +26,7 @@ export class SelectComponent implements ControlValueAccessor {
 
   // Allows parent to override button shape/styling
   @Input() triggerClass =
-    'bg-neutral-800 py-2.5 rounded-lg border border-neutral-700 hover:border-neutral-600 w-full';
+    'bg-neutral-800 py-3 rounded-lg border border-neutral-700 hover:border-neutral-600 w-full';
 
   value: any = null;
   isOpen = false;

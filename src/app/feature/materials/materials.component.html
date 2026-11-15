@@ -3,10 +3,10 @@
     <nz-spin nzSimple nzSize="large"></nz-spin>
   </div>
 } @else {
-  <div class="p-4">
-    <!-- Header & Add Button -->
-    <div class="flex justify-between items-center mb-4">
-      <h1 class="text-2xl font-bold m-0 text-white">Materials</h1>
+  <div class="px-4 pt-4">
+    <!-- Page Title & Action Button -->
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-lg font-semibold m-0 text-white">Materials</h1>
       <button
         nz-button
         nzType="primary"
@@ -360,15 +360,6 @@
             <label class="block text-sm font-medium text-white mb-2">
               Material Name <span class="text-red-500">*</span>
             </label>
-            <!-- <select
-              formControlName="name"
-              class="w-full px-3 py-2 bg-neutral-800 border border-neutral-700 text-white rounded-md text-base focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 appearance-none cursor-pointer"
-            >
-              <option value="" disabled selected>Select material</option>
-              @for (mat of dynamicMaterialOptions; track mat) {
-                <option [value]="mat">{{ mat }}</option>
-              }
-            </select> -->
             <app-select
               formControlName="name"
               [options]="dynamicMaterialOptions"
@@ -465,13 +456,12 @@
             <nz-form-item class="mb-0">
               <nz-form-label nzRequired>Delivery (₹)</nz-form-label>
               <nz-form-control nzErrorTip="Required">
-                <nz-input-number
+                <sk-textfield
                   formControlName="deliveryCharge"
-                  [nzMin]="0"
-                  [nzStep]="10"
-                  class="w-full bg-neutral-800 border-neutral-700 text-white"
-                  nzSize="large"
-                ></nz-input-number>
+                  placeholder="Delivery charge"
+                  type="number"
+                  class="w-full"
+                ></sk-textfield>
               </nz-form-control>
             </nz-form-item>
           </div>
@@ -481,14 +471,6 @@
             <label class="block text-sm font-medium text-white mb-2">
               Delivery Date <span class="text-red-500">*</span>
             </label>
-            <!-- <input
-              id="deliveryDateInput"
-              type="text"
-              formControlName="deliveryDate"
-              class="w-full px-3 py-2 bg-neutral-800 border border-neutral-700 text-white rounded-md text-base focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 cursor-pointer"
-              placeholder="Select date"
-              readonly
-            --> 
             <sk-datepicker
               formControlName="deliveryDate"
               mode="date"

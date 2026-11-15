@@ -1,0 +1,25 @@
+<div class="relative w-full">
+  <!-- Optional Left Icon -->
+  @if (icon) {
+    <div
+      class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-neutral-400"
+    >
+      <span nz-icon [nzType]="icon" class="text-sm"></span>
+    </div>
+  }
+
+  <!-- The Native Input Element -->
+  <input
+    [type]="type"
+    [value]="value"
+    (input)="onInput($event)"
+    (blur)="onTouched()"
+    [disabled]="isDisabled"
+    [placeholder]="placeholder"
+    class="text-white px-4 text-sm transition-all focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed {{
+      inputClass
+    }}"
+    [ngClass]="{ 'pl-10': icon }"
+  />
+  <!-- Note: [ngClass]="{'pl-10': icon}" adds left padding if an icon is present -->
+</div>

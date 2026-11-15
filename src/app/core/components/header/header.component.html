@@ -10,33 +10,18 @@
       rgba(20, 20, 20, 0.4);
     -webkit-backdrop-filter: blur(16px);
     backdrop-filter: blur(16px);
-    padding-top: calc(env(safe-area-inset-top) + 1rem);
+    padding-top: calc(env(safe-area-inset-top) + 0.5rem);
   "
 >
-  <div class="flex justify-between items-center px-4 py-3">
-    <!-- Logo & Title -->
-    <div class="flex items-center gap-3 flex-shrink-0">
-      <div
-        class="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-500 flex items-center justify-center"
-      >
-        <span
-          nz-icon
-          nzType="home"
-          nzTheme="fill"
-          class="text-neutral-900 text-lg"
-        ></span>
-      </div>
-      <div>
-        <h1 class="text-lg font-black text-emerald-400 tracking-tight m-0">
-          SiteLedger
-        </h1>
-        <p class="text-[10px] text-neutral-500 m-0 font-medium">
-          Site Management
-        </p>
-      </div>
+  <div class="flex justify-between items-center px-4 py-2">
+    <!-- Project Selector (Left) -->
+    <div class="flex-1">
+      <app-project-selector></app-project-selector>
     </div>
 
-    <app-project-selector></app-project-selector>
-    <app-import-export-dropdown></app-import-export-dropdown>
+    <!-- Export Dropdown (Right) -->
+    <div class="flex-shrink-0 ml-3">
+      <app-import-export-dropdown></app-import-export-dropdown>
+    </div>
   </div>
 </div>

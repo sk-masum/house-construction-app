@@ -1,5 +1,7 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { StepperComponent } from './components/stepper/stepper.component';
+import { TextfieldComponent } from '../../shared/components/textfield/textfield.component';
 import {
   FormBuilder,
   FormGroup,
@@ -15,13 +17,11 @@ import {
 
 import { NzDrawerModule } from 'ng-zorro-antd/drawer';
 import { NzFormModule } from 'ng-zorro-antd/form';
-import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
-import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
-import { NzTabsModule } from 'ng-zorro-antd/tabs';
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
+import { SelectComponent } from '../../shared/components/select/select.component';
+import { CdkStepperModule } from '@angular/cdk/stepper';
 
 @Component({
   selector: 'app-works',
@@ -32,23 +32,25 @@ import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
     FormsModule,
     NzDrawerModule,
     NzFormModule,
-    NzInputModule,
-    NzInputNumberModule,
-    NzSelectModule,
     NzButtonModule,
     NzIconModule,
-    NzTabsModule,
     NzPopconfirmModule,
+    TextfieldComponent,
+    SelectComponent,
+    CdkStepperModule,
+    StepperComponent,
   ],
   templateUrl: './works.component.html',
 })
 export class WorksComponent implements OnInit {
+  @ViewChild('stepper') stepper!: StepperComponent;
+
   isSaving = false;
   works: Work[] = [];
 
   // Drawer & Stepper State
   isDrawerVisible = false;
-  activeTab = 0;
+  // activeTab = 0;
   currentWorkId: number | null = null;
   currentEstimations: WorkEstimation[] = [];
 
@@ -142,7 +144,9 @@ export class WorksComponent implements OnInit {
     this.workForm.reset();
     this.currentWorkId = null;
     this.currentEstimations = [];
-    this.activeTab = 0; // Start at Step 1
+    this.estForm.reset();
+    // Reset stepper to first step
+    this.stepper?.selectStepByIndex(0);
     this.isDrawerVisible = true;
   }
 
@@ -170,8 +174,10 @@ export class WorksComponent implements OnInit {
         this.db.worksListChanged$.next();
       }
 
+      this.isSaving = false;
+
       // Move to Step 2: Estimations
-      this.activeTab = 1;
+      this.stepper.selectStepByIndex(1);
       this.cdr.detectChanges();
     }
   }
@@ -218,7 +224,7 @@ export class WorksComponent implements OnInit {
     // Fetch the estimations for this project
     this.currentEstimations = await this.db.getEstimationsForWork(work.id!);
 
-    this.activeTab = 0; // Start at Step 1
+    // this.activeTab = 0; // Start at Step 1
     this.isDrawerVisible = true;
     this.cdr.detectChanges();
   }
@@ -267,6 +273,8 @@ export class WorksComponent implements OnInit {
 
   closeDrawer() {
     this.isDrawerVisible = false;
+    this.stepper?.selectStepByIndex(0);
+    this.estForm.reset();
   }
 
   get currentEstimationsTotal(): number {
