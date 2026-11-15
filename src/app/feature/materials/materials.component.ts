@@ -1,11 +1,4 @@
-import {
-  Component,
-  OnInit,
-  OnDestroy,
-  ChangeDetectorRef,
-  ViewChild,
-  ElementRef,
-} from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
 import { MaterialCardComponent } from './components/material-card/material-card.component';
 import { CommonModule } from '@angular/common';
 import {
@@ -37,6 +30,7 @@ import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { SelectComponent } from '../../shared/components/select/select.component';
 import { DatepickerComponent } from '../../shared/components/datepicker/datepicker.component';
+import { TextfieldComponent } from '../../shared/components/textfield/textfield.component';
 
 @Component({
   selector: 'app-materials',
@@ -56,6 +50,7 @@ import { DatepickerComponent } from '../../shared/components/datepicker/datepick
     NzSpinModule,
     SelectComponent,
     DatepickerComponent,
+    TextfieldComponent,
   ],
   templateUrl: './materials.component.html',
 })
