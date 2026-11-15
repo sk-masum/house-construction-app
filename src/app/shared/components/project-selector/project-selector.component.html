@@ -1,0 +1,84 @@
+<!-- <div>
+  <button
+    cdkOverlayOrigin
+    #trigger="cdkOverlayOrigin"
+    (click)="isSelectorOpen = !isSelectorOpen"
+    class="flex items-center justify-between w-40 bg-neutral-800/80 backdrop-blur text-white px-4 py-2 rounded-full text-sm border border-neutral-700 hover:border-neutral-600 transition-all focus:outline-none"
+  >
+    <span class="truncate font-medium">{{ activeWorkName }}</span>
+    <span
+      nz-icon
+      [nzType]="isSelectorOpen ? 'up' : 'down'"
+      class="text-[10px] text-neutral-400 ml-2"
+    ></span>
+  </button>
+
+  <ng-template
+    cdkConnectedOverlay
+    [cdkConnectedOverlayOrigin]="trigger"
+    [cdkConnectedOverlayOpen]="isSelectorOpen"
+    (overlayOutsideClick)="isSelectorOpen = false"
+    [cdkConnectedOverlayHasBackdrop]="true"
+    cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop"
+    (backdropClick)="isSelectorOpen = false"
+    [cdkConnectedOverlayPositions]="[
+      {
+        originX: 'end',
+        originY: 'bottom',
+        overlayX: 'end',
+        overlayY: 'top',
+        offsetY: 8,
+      },
+    ]"
+  >
+    <div
+      class="bg-neutral-800 border border-neutral-700 rounded-2xl shadow-2xl py-2 w-56 flex flex-col overflow-hidden"
+    >
+      <div
+        (click)="selectWork(null)"
+        class="px-4 py-3 text-sm cursor-pointer transition-colors flex justify-between items-center"
+        [ngClass]="
+          activeWorkId === null
+            ? 'bg-emerald-500/10 text-emerald-400 font-bold'
+            : 'text-neutral-300 hover:bg-neutral-700 hover:text-white'
+        "
+      >
+        All Site Works
+        @if (activeWorkId === null) {
+          <span nz-icon nzType="check"></span>
+        }
+      </div>
+
+      <div class="h-px bg-neutral-700/50 my-1 mx-4"></div>
+
+      <div class="max-h-64 overflow-y-auto">
+        @for (work of allWorks; track work.id) {
+          <div
+            (click)="selectWork(work.id!)"
+            class="px-4 py-3 text-sm cursor-pointer transition-colors flex justify-between items-center"
+            [ngClass]="
+              activeWorkId === work.id
+                ? 'bg-emerald-500/10 text-emerald-400 font-bold'
+                : 'text-neutral-300 hover:bg-neutral-700 hover:text-white'
+            "
+          >
+            <span class="truncate pr-2">{{ work.name }}</span>
+            @if (activeWorkId === work.id) {
+              <span nz-icon nzType="check"></span>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </ng-template>
+</div> -->
+
+<app-select
+  [options]="allWorks"
+  valueKey="id"
+  labelKey="name"
+  nullLabel="All Site Works"
+  [ngModel]="activeWorkId"
+  (ngModelChange)="selectWork($event)"
+  triggerClass="bg-neutral-800/80 backdrop-blur text-white py-2 rounded-full text-sm border border-neutral-700 hover:border-neutral-600 w-48"
+></app-select>

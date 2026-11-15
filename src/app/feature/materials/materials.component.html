@@ -360,7 +360,7 @@
             <label class="block text-sm font-medium text-white mb-2">
               Material Name <span class="text-red-500">*</span>
             </label>
-            <select
+            <!-- <select
               formControlName="name"
               class="w-full px-3 py-2 bg-neutral-800 border border-neutral-700 text-white rounded-md text-base focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 appearance-none cursor-pointer"
             >
@@ -368,7 +368,12 @@
               @for (mat of dynamicMaterialOptions; track mat) {
                 <option [value]="mat">{{ mat }}</option>
               }
-            </select>
+            </select> -->
+            <app-select
+              formControlName="name"
+              [options]="dynamicMaterialOptions"
+              placeholder="Select material"
+            ></app-select>
             @if (
               materialForm.get("name")?.hasError("required") &&
               materialForm.get("name")?.touched
@@ -443,15 +448,11 @@
             <label class="block text-sm font-medium text-white mb-2">
               Builder / Contractor <span class="text-red-500">*</span>
             </label>
-            <select
+            <app-select
               formControlName="builderName"
-              class="w-full px-3 py-2 bg-neutral-800 border border-neutral-700 text-white rounded-md text-base focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 appearance-none cursor-pointer"
-            >
-              <option value="" disabled selected>Select builder</option>
-              @for (builder of BUILDER_OPTIONS; track builder) {
-                <option [value]="builder">{{ builder }}</option>
-              }
-            </select>
+              [options]="BUILDER_OPTIONS"
+              placeholder="Select builder"
+            ></app-select>
             @if (
               materialForm.get("builderName")?.hasError("required") &&
               materialForm.get("builderName")?.touched
@@ -480,14 +481,19 @@
             <label class="block text-sm font-medium text-white mb-2">
               Delivery Date <span class="text-red-500">*</span>
             </label>
-            <input
+            <!-- <input
               id="deliveryDateInput"
               type="text"
               formControlName="deliveryDate"
               class="w-full px-3 py-2 bg-neutral-800 border border-neutral-700 text-white rounded-md text-base focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 cursor-pointer flatpickr-input"
               placeholder="Select date"
               readonly
-            />
+            /> -->
+            <sk-datepicker
+              formControlName="deliveryDate"
+              mode="date"
+              placeholder="Select date"
+            ></sk-datepicker>
             @if (
               materialForm.get("deliveryDate")?.hasError("required") &&
               materialForm.get("deliveryDate")?.touched

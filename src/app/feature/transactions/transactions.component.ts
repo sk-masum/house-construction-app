@@ -1,4 +1,5 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { SelectComponent } from '../../shared/components/select/select.component';
 import { CommonModule } from '@angular/common';
 import {
   FormBuilder,
@@ -22,6 +23,7 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { Subscription } from 'rxjs';
+import { DatepickerComponent } from '../../shared/components/datepicker/datepicker.component';
 
 @Component({
   selector: 'app-transactions',
@@ -37,6 +39,8 @@ import { Subscription } from 'rxjs';
     NzButtonModule,
     NzIconModule,
     NzPopconfirmModule,
+    SelectComponent,
+    DatepickerComponent,
   ],
   templateUrl: './transactions.component.html',
 })

@@ -174,7 +174,7 @@
           <nz-form-item class="mb-0">
             <nz-form-label nzRequired>Receiver (To)</nz-form-label>
             <nz-form-control nzErrorTip="Required">
-              <select
+              <!-- <select
                 formControlName="receiver"
                 class="w-full px-3 py-2 bg-neutral-800 border border-neutral-700 text-white rounded text-base"
                 style="
@@ -187,7 +187,12 @@
                 @for (rec of RECEIVER_OPTIONS; track rec) {
                   <option [value]="rec">{{ rec }}</option>
                 }
-              </select>
+              </select> -->
+              <app-select
+                formControlName="receiver"
+                [options]="RECEIVER_OPTIONS"
+                placeholder="Select receiver"
+              ></app-select>
             </nz-form-control>
           </nz-form-item>
         </div>
@@ -195,12 +200,17 @@
         <nz-form-item class="mb-6">
           <nz-form-label nzRequired>Date & Time</nz-form-label>
           <nz-form-control>
-            <input
+            <!-- <input
               type="text"
               id="datetimeInput"
               class="flatpickr-input w-full px-3 py-2 bg-neutral-800 border border-neutral-700 text-white rounded text-base"
               placeholder="Select date and time"
-            />
+            /> -->
+            <sk-datepicker
+              formControlName="dateTime"
+              placeholder="Select date and time"
+              mode="datetime"
+            ></sk-datepicker>
           </nz-form-control>
         </nz-form-item>
 

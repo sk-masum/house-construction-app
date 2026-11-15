@@ -1,0 +1,33 @@
+<div class="relative w-full">
+  <!-- The Native Input Element -->
+  <!-- We use absolute opacity-0 on the internal picker icon so it opens anywhere you tap -->
+  <input
+    [type]="mode === 'date' ? 'date' : 'datetime-local'"
+    [value]="internalStringValue"
+    (input)="onInputChange($event)"
+    [disabled]="isDisabled"
+    class="flex items-center text-white px-4 text-sm transition-all focus:outline-none focus:border-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed appearance-none {{
+      triggerClass
+    }} [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+  />
+
+  <!-- Custom Icon Overlay (Since we hid the native one) -->
+  <div
+    class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-neutral-400"
+  >
+    <span
+      nz-icon
+      [nzType]="mode === 'datetime' ? 'clock-circle' : 'calendar'"
+      class="text-sm"
+    ></span>
+  </div>
+
+  <!-- Floating Placeholder if empty -->
+  @if (!internalStringValue) {
+    <div
+      class="absolute inset-y-0 left-0 flex items-center px-4 pointer-events-none text-neutral-500 text-sm"
+    >
+      {{ placeholder }}
+    </div>
+  }
+</div>

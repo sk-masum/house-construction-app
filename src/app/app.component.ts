@@ -1,15 +1,15 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { ImportExportDropdownComponent } from './core/components/import-export-dropdown/import-export-dropdown.component';
 import { Router, RouterModule, RouterOutlet } from '@angular/router';
 import { DbService, Work } from './core/services/db.service';
 import { BackupService } from './core/services/backup.service';
 import { FormsModule } from '@angular/forms';
-import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzIconModule } from 'ng-zorro-antd/icon';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { CommonModule } from '@angular/common';
 import { NzMessageService } from 'ng-zorro-antd/message';
+import { ProjectSelectorComponent } from './shared/components/project-selector/project-selector.component';
 
 @Component({
   selector: 'app-root',
@@ -17,13 +17,13 @@ import { NzMessageService } from 'ng-zorro-antd/message';
   imports: [
     RouterOutlet,
     FormsModule,
-    NzSelectModule,
     RouterModule,
     NzIconModule,
-    NzDropDownModule,
     NzMenuModule,
     NzButtonModule,
     CommonModule,
+    ProjectSelectorComponent,
+    ImportExportDropdownComponent,
   ],
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
@@ -31,9 +31,12 @@ import { NzMessageService } from 'ng-zorro-antd/message';
 export class AppComponent implements OnInit {
   allWorks: Work[] = [];
   activeWorkId: number | null = null;
+  isSelectorOpen = false;
+  isMenuOpen = false;
 
   @ViewChild('materialUpload') materialUpload!: ElementRef<HTMLInputElement>;
-  @ViewChild('transactionUpload') transactionUpload!: ElementRef<HTMLInputElement>;
+  @ViewChild('transactionUpload')
+  transactionUpload!: ElementRef<HTMLInputElement>;
 
   constructor(
     private db: DbService,
@@ -111,6 +114,21 @@ export class AppComponent implements OnInit {
         this.message.error('Failed to import materials');
       }
     }
+  }
+
+  // NEW: Helper to display the currently selected name on the button
+  get activeWorkName(): string {
+    if (!this.activeWorkId) return 'All Site Works';
+    return (
+      this.allWorks.find((w) => w.id === this.activeWorkId)?.name ||
+      'All Site Works'
+    );
+  }
+
+  // NEW: Handle selection and close the CDK dropdown
+  selectWork(workId: number | null) {
+    this.isSelectorOpen = false;
+    this.db.activeWorkId$.next(workId); // Reactively updates the rest of the app
   }
 
   async onTransactionFileSelected(event: Event) {

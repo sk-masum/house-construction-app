@@ -76,7 +76,7 @@ export interface TransactionFilters {
 })
 export class DbService {
   private db: any;
-  private readyPromise: Promise<void>;
+  public readyPromise: Promise<void>;
 
   public activeWorkId$ = new BehaviorSubject<number | null>(null);
   public worksListChanged$ = new Subject<void>();
@@ -854,5 +854,29 @@ export class DbService {
       sql: 'INSERT OR REPLACE INTO material_defaults (name, price) VALUES (?, ?)',
       bind: [name, price],
     });
+  }
+
+  async getMaterialsByWorkId(workId: number): Promise<any[]> {
+    await this.readyPromise;
+    const rows: any[] = [];
+    this.db.exec({
+      sql: 'SELECT * FROM materials WHERE workId = ?',
+      bind: [workId],
+      rowMode: 'object',
+      callback: (r: any) => rows.push(r),
+    });
+    return rows;
+  }
+
+  async getTransactionsByWorkId(workId: number): Promise<any[]> {
+    await this.readyPromise;
+    const rows: any[] = [];
+    this.db.exec({
+      sql: 'SELECT * FROM transactions WHERE workId = ?',
+      bind: [workId],
+      rowMode: 'object',
+      callback: (r: any) => rows.push(r),
+    });
+    return rows;
   }
 }

@@ -37,6 +37,8 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
+import { SelectComponent } from '../../shared/components/select/select.component';
+import { DatepickerComponent } from '../../shared/components/datepicker/datepicker.component';
 
 @Component({
   selector: 'app-materials',
@@ -54,6 +56,8 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
     NzPopconfirmModule,
     MaterialCardComponent,
     NzSpinModule,
+    SelectComponent,
+    DatepickerComponent,
   ],
   templateUrl: './materials.component.html',
 })

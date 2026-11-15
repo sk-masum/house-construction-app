@@ -2,7 +2,7 @@
 
 <!-- Global Header -->
 <div
-  class="sticky top-0 z-50 pb-safe border-b border-neutral-700/30"
+  class="sticky top-0 z-50 pb-safe border-b border-neutral-700/30 pt-[max(1rem,env(safe-area-inset-top))]"
   style="
     background:
       linear-gradient(
@@ -15,7 +15,7 @@
     backdrop-filter: blur(16px);
   "
 >
-  <div class="flex justify-between items-center px-4 py-3 gap-4">
+  <div class="flex justify-between items-center px-4 py-3">
     <!-- Logo & Title -->
     <div class="flex items-center gap-3 flex-shrink-0">
       <div
@@ -38,77 +38,8 @@
       </div>
     </div>
 
-    <!-- Global Project Selector -->
-    <div class="flex-1 max-w-xs">
-      <nz-select
-        [ngModel]="activeWorkId"
-        (ngModelChange)="onWorkChange($event)"
-        nzPlaceHolder="All Site Works"
-        class="app-header-select w-full"
-      >
-        <nz-option [nzValue]="null" nzLabel="All Site Works"></nz-option>
-        @for (work of allWorks; track work.id) {
-          <nz-option [nzValue]="work.id" [nzLabel]="work.name"></nz-option>
-        }
-      </nz-select>
-    </div>
-
-    <!-- Actions Menu -->
-    <div nz-dropdown [nzDropdownMenu]="menu" nzPlacement="bottomRight">
-      <button
-        nz-button
-        nzType="text"
-        class="!text-neutral-400 hover:!text-emerald-400 !border-none !h-auto !p-2 transition-colors"
-      >
-        <span
-          nz-icon
-          nzType="ellipsis"
-          nzTheme="outline"
-          class="text-xl"
-        ></span>
-      </button>
-    </div>
-    <nz-dropdown-menu #menu="nzDropdownMenu">
-      <ul nz-menu class="bg-neutral-900 border border-neutral-700 text-white">
-        <!-- Data Export Section -->
-        <li nz-menu-item class="text-white" (click)="exportMaterials()">
-          <span nz-icon nzType="download" nzTheme="outline"></span>
-          <span class="ml-1">Export Materials</span>
-        </li>
-        <li nz-menu-item class="text-white" (click)="exportTransactions()">
-          <span nz-icon nzType="download" nzTheme="outline"></span>
-          <span class="ml-1">Export Ledger</span>
-        </li>
-
-        <li nz-menu-divider></li>
-
-        <!-- Data Import Section -->
-        <li nz-menu-item class="text-white" (click)="importMaterialsClick()">
-          <span nz-icon nzType="upload" nzTheme="outline"></span>
-          <span class="ml-1">Import Materials</span>
-        </li>
-        <li nz-menu-item class="text-white" (click)="importTransactionsClick()">
-          <span nz-icon nzType="upload" nzTheme="outline"></span>
-          <span class="ml-1">Import Ledger</span>
-        </li>
-      </ul>
-    </nz-dropdown-menu>
-
-    <!-- Hidden File Inputs -->
-    <input
-      #materialUpload
-      type="file"
-      accept=".csv"
-      class="hidden"
-      (change)="onMaterialFileSelected($event)"
-    />
-    <input
-      #transactionUpload
-      type="file"
-      accept=".csv"
-      class="hidden"
-      (change)="onTransactionFileSelected($event)"
-    />
+    <app-project-selector></app-project-selector>
+    <app-import-export-dropdown></app-import-export-dropdown>
   </div>
 </div>
 <main class="safe-area-view text-neutral-100">

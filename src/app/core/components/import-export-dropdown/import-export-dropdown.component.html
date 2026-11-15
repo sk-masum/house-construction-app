@@ -1,0 +1,64 @@
+<!-- 1. The Trigger Button -->
+<button
+  cdkOverlayOrigin
+  #menuTrigger="cdkOverlayOrigin"
+  (click)="isMenuOpen = !isMenuOpen"
+  class="menu-trigger"
+  aria-label="Import/Export options"
+  [attr.aria-expanded]="isMenuOpen"
+>
+  <span nz-icon nzType="ellipsis" nzTheme="outline"></span>
+</button>
+<!-- Hidden File Input for Import -->
+<input
+  #fileInput
+  type="file"
+  accept=".json"
+  style="display: none"
+  (change)="onFileSelected($event)"
+/>
+
+<!-- 2. The Floating CDK Overlay Menu -->
+<ng-template
+  cdkConnectedOverlay
+  [cdkConnectedOverlayOrigin]="menuTrigger"
+  [cdkConnectedOverlayOpen]="isMenuOpen"
+  (overlayOutsideClick)="isMenuOpen = false"
+  [cdkConnectedOverlayHasBackdrop]="true"
+  cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop"
+  (backdropClick)="isMenuOpen = false"
+  [cdkConnectedOverlayPositions]="[
+    {
+      originX: 'end',
+      originY: 'bottom',
+      overlayX: 'end',
+      overlayY: 'top',
+      offsetY: 8,
+    },
+  ]"
+>
+  <div class="dropdown-menu">
+    <!-- Export Work -->
+    <button
+      (click)="isMenuOpen = false; exportWork()"
+      class="menu-item"
+      aria-label="Export current project"
+    >
+      <span nz-icon nzType="download" nzTheme="outline"></span>
+      <span>Export Work</span>
+    </button>
+
+    <!-- Divider -->
+    <div class="menu-divider"></div>
+
+    <!-- Import Work -->
+    <button
+      (click)="isMenuOpen = false; importWorkClick()"
+      class="menu-item"
+      aria-label="Import project from file"
+    >
+      <span nz-icon nzType="upload" nzTheme="outline"></span>
+      <span>Import Work</span>
+    </button>
+  </div>
+</ng-template>

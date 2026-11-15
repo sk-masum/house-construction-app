@@ -1,0 +1,91 @@
+<div class="relative w-full">
+  <!-- 1. Trigger Button -->
+  <button
+    type="button"
+    cdkOverlayOrigin
+    #trigger="cdkOverlayOrigin"
+    (click)="!isDisabled && (isOpen = !isOpen)"
+    [disabled]="isDisabled"
+    class="flex items-center justify-between text-white px-4 text-sm transition-all focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed {{
+      triggerClass
+    }}"
+  >
+    <span class="truncate font-medium">{{ displayValue }}</span>
+    <span
+      nz-icon
+      [nzType]="isOpen ? 'up' : 'down'"
+      class="text-[10px] text-neutral-400 ml-2"
+    ></span>
+  </button>
+
+  <!-- 2. CDK Dropdown Menu -->
+  <ng-template
+    cdkConnectedOverlay
+    [cdkConnectedOverlayOrigin]="trigger"
+    [cdkConnectedOverlayOpen]="isOpen"
+    (overlayOutsideClick)="isOpen = false"
+    [cdkConnectedOverlayHasBackdrop]="true"
+    cdkConnectedOverlayBackdropClass="cdk-overlay-transparent-backdrop"
+    (backdropClick)="isOpen = false"
+    [cdkConnectedOverlayPositions]="[
+      {
+        originX: 'start',
+        originY: 'bottom',
+        overlayX: 'start',
+        overlayY: 'top',
+        offsetY: 6,
+      },
+      {
+        originX: 'start',
+        originY: 'top',
+        overlayX: 'start',
+        overlayY: 'bottom',
+        offsetY: -6,
+      },
+    ]"
+  >
+    <div
+      class="bg-neutral-800 border border-neutral-700 rounded-xl shadow-2xl py-2 flex flex-col overflow-hidden max-h-64"
+      [style.min-width.px]="trigger.elementRef.nativeElement.offsetWidth"
+    >
+      <!-- Optional Null/All Option -->
+      @if (nullLabel) {
+        <div
+          (click)="selectOption(null)"
+          class="px-4 py-3 text-sm cursor-pointer transition-colors flex justify-between items-center"
+          [ngClass]="
+            value === null
+              ? 'bg-emerald-500/10 text-emerald-400 font-bold'
+              : 'text-neutral-300 hover:bg-neutral-700 hover:text-white'
+          "
+        >
+          <span class="truncate pr-2">{{ nullLabel }}</span>
+          @if (value === null) {
+            <span nz-icon nzType="check"></span>
+          }
+        </div>
+        <div class="h-px bg-neutral-700/50 my-1 mx-4"></div>
+      }
+
+      <!-- Dynamic Options List -->
+      <div class="overflow-y-auto">
+        @for (opt of options; track getOptionValue(opt)) {
+          <div
+            (click)="selectOption(getOptionValue(opt))"
+            class="px-4 py-3 text-sm cursor-pointer transition-colors flex justify-between items-center"
+            [ngClass]="
+              value === getOptionValue(opt)
+                ? 'bg-emerald-500/10 text-emerald-400 font-bold'
+                : 'text-neutral-300 hover:bg-neutral-700 hover:text-white'
+            "
+          >
+            <span class="truncate pr-2">{{ getOptionLabel(opt) }}</span>
+            @if (value === getOptionValue(opt)) {
+              <span nz-icon nzType="check"></span>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </ng-template>
+</div>
