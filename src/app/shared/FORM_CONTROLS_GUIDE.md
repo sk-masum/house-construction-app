@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide explains how to use the centralized form control styles and utilities to build iOS-optimized forms with native controls and Flatpickr datepickers.
+This guide explains how to use the centralized form control styles and utilities to build iOS-optimized forms with native controls.
 
 ## File Structure
 
@@ -10,10 +10,10 @@ This guide explains how to use the centralized form control styles and utilities
 src/app/shared/
 ├── styles/
 │   └── form-controls.scss         # Centralized form control CSS
-├── utils/
-│   └── flatpickr.utils.ts         # Flatpickr initialization utilities
 └── components/
-    └── base-form.component.ts     # Base class for form components
+    ├── base-form.component.ts     # Base class for form components
+    └── datepicker/
+        └── datepicker.component.ts # Date picker component
 ```
 
 ## Usage Guide
@@ -54,8 +54,11 @@ src/app/shared/
   </div>
 </div>
 
-<!-- Flatpickr date input -->
-<input type="text" id="dateInput" class="flatpickr-input" />
+<!-- Date input -->
+<input type="date" class="form-control" />
+
+<!-- DateTime input -->
+<input type="datetime-local" class="form-control" />
 
 <!-- Button with safe area padding -->
 <button class="btn-safe-area">Submit</button>
@@ -68,93 +71,12 @@ src/app/shared/
 </div>
 ```
 
-### 2. Using Flatpickr Utilities
-
-#### Simple Date Picker (Date Only):
-
-```typescript
-import { FlatpickrUtils } from '../../shared/utils/flatpickr.utils';
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
-
-@Component({
-  selector: 'app-my-form',
-  template: `
-    <input type="text" id="dateInput" class="flatpickr-input" />
-  `
-})
-export class MyFormComponent implements OnInit, OnDestroy {
-  form!: FormGroup;
-  private datePicker: any;
-
-  constructor(private fb: FormBuilder) {}
-
-  ngOnInit() {
-    this.form = this.fb.group({
-      date: [new Date()]
-    });
-    this.initializePickerOnOpen();
-  }
-
-  initializePickerOnOpen() {
-    setTimeout(() => {
-      this.datePicker = FlatpickrUtils.initializeDatePicker(
-        this.form,
-        'dateInput',
-        'date'
-      );
-    }, 100);
-  }
-
-  ngOnDestroy() {
-    FlatpickrUtils.destroy(this.datePicker);
-  }
-}
-```
-
-#### Datetime Picker (Date + Time):
-
-```typescript
-ngOnInit() {
-  this.form = this.fb.group({
-    dateTime: [new Date()]
-  });
-  this.initializePickerOnOpen();
-}
-
-initializePickerOnOpen() {
-  setTimeout(() => {
-    this.datePicker = FlatpickrUtils.initializeDatetimePicker(
-      this.form,
-      'datetimeInput',
-      'dateTime'
-    );
-  }, 100);
-}
-```
-
-#### Custom Flatpickr Configuration:
-
-```typescript
-this.datePicker = FlatpickrUtils.initializeCustom('dateInput', {
-  enableTime: true,
-  dateFormat: 'Y-m-d H:i',
-  time_24hr: true,
-  minDate: new Date(),
-  maxDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-  onChange: (selectedDates) => {
-    console.log('Date selected:', selectedDates[0]);
-  }
-});
-```
-
-### 3. Using the Base Form Component
+### 2. Using the Base Form Component
 
 #### Extend BaseFormComponent for your form:
 
 ```typescript
 import { BaseFormComponent } from '../../shared/components/base-form.component';
-import { DatePickerConfig } from '../../shared/components/base-form.component';
 import { Component } from '@angular/core';
 
 @Component({
@@ -162,7 +84,7 @@ import { Component } from '@angular/core';
   template: `
     <nz-drawer [nzVisible]="isDrawerVisible" (nzOnClose)="closeDrawer()">
       <form [formGroup]="form" (ngSubmit)="submitForm()">
-        <input type="text" id="deliveryDate" class="flatpickr-input" />
+        <input type="date" formControlName="deliveryDate" class="form-control" />
         <button nz-button nzType="primary" class="btn-safe-area">Save</button>
       </form>
     </nz-drawer>
@@ -172,16 +94,8 @@ import { Component } from '@angular/core';
 export class MaterialFormComponent extends BaseFormComponent {
   protected initializeForm(): void {
     this.form = this.fb.group({
-      deliveryDate: [new Date()]
+      deliveryDate: [new Date().toISOString().split('T')[0]]
     });
-  }
-
-  protected getDatePickerConfig(): DatePickerConfig | null {
-    return {
-      inputId: 'deliveryDate',
-      formControl: 'deliveryDate',
-      enableTime: false
-    };
   }
 
   async submitForm(): Promise<void> {
@@ -194,41 +108,7 @@ export class MaterialFormComponent extends BaseFormComponent {
 }
 ```
 
-#### For Multiple Date Pickers:
-
-```typescript
-import { MultiDatePickerMixin } from '../../shared/components/base-form.component';
-
-export class MultiPickerFormComponent extends BaseFormComponent {
-  private multiPickerMixin = new MultiDatePickerMixin();
-
-  protected initializeForm(): void {
-    this.form = this.fb.group({
-      startDate: [new Date()],
-      endDate: [new Date()]
-    });
-  }
-
-  protected initializeDatePickers(): void {
-    this.multiPickerMixin.initializeMultipleDatePickers(this.form, [
-      { inputId: 'startDate', formControl: 'startDate' },
-      { inputId: 'endDate', formControl: 'endDate' }
-    ]);
-  }
-
-  protected cleanupDatePickers(): void {
-    this.multiPickerMixin.cleanupAllDatePickers();
-  }
-
-  async submitForm(): Promise<void> {
-    // Implementation
-  }
-}
-```
-
-### 4. HTML Template Patterns
-
-#### Complete Form Template:
+### 3. Complete Form Template Example:
 
 ```html
 <form [formGroup]="form" (ngSubmit)="submitForm()" class="form-drawer-container">
@@ -270,10 +150,16 @@ export class MultiPickerFormComponent extends BaseFormComponent {
     </div>
   </div>
 
-  <!-- Flatpickr date input -->
+  <!-- Date input -->
   <div class="form-group">
     <label class="required">Delivery Date</label>
-    <input type="text" id="deliveryDate" class="flatpickr-input" />
+    <input type="date" formControlName="deliveryDate" class="form-control" />
+  </div>
+
+  <!-- DateTime input -->
+  <div class="form-group">
+    <label class="required">Delivery DateTime</label>
+    <input type="datetime-local" formControlName="dateTime" class="form-control" />
   </div>
 
   <!-- Submit button with safe area -->
@@ -315,60 +201,20 @@ export class MultiPickerFormComponent extends BaseFormComponent {
 - ✅ iOS appearance normalized
 - ✅ Smooth transitions
 
-### Flatpickr Date Picker
-- ✅ Dark theme calendar
-- ✅ Emerald accent colors
-- ✅ Time selection support
-- ✅ 24-hour format
-- ✅ Mobile responsive
-- ✅ Safe area aware
-
-## Migration Guide
-
-### From ng-zorro to Native Forms
-
-**Before (ng-zorro):**
-```html
-<nz-select formControlName="field" class="w-full">
-  <nz-option [nzValue]="'value'" [nzLabel]="'Label'"></nz-option>
-</nz-select>
-```
-
-**After (Native):**
-```html
-<select formControlName="field" class="form-control">
-  <option value="value">Label</option>
-</select>
-```
-
-**Before (ng-zorro):**
-```html
-<nz-input-number formControlName="amount" [nzMin]="1" class="w-full"></nz-input-number>
-```
-
-**After (Native):**
-```html
-<input type="number" formControlName="amount" min="1" class="form-control" />
-```
-
-**Before (ng-zorro):**
-```html
-<nz-date-picker nzShowTime formControlName="dateTime"></nz-date-picker>
-```
-
-**After (Flatpickr):**
-```html
-<input type="text" id="datetimeInput" class="flatpickr-input" />
-<!-- Initialize with FlatpickrUtils.initializeDatetimePicker() -->
-```
+### Native Date/DateTime Pickers
+- ✅ Browser native date picker (iOS calendar)
+- ✅ DateTime support with time selection
+- ✅ Mobile optimized
+- ✅ No external dependencies needed
+- ✅ Accessible and semantic
 
 ## Performance Tips
 
-1. **Lazy Initialize Pickers:** Only initialize date pickers when drawer opens
-2. **Cleanup on Close:** Always destroy date picker instances to prevent memory leaks
-3. **Use Base Component:** Extend BaseFormComponent to avoid repetitive code
-4. **Centralize CSS:** Import shared form-controls.scss instead of duplicating styles
-5. **Native Controls:** Prefer native HTML5 controls over ng-zorro for better performance
+1. **Use Native Controls:** Prefer HTML5 `<input type="date">` over external libraries
+2. **Extend Base Component:** Use BaseFormComponent to avoid repetitive code
+3. **Centralize CSS:** Import shared form-controls.scss instead of duplicating styles
+4. **Form Validation:** Use Angular reactive forms for built-in validation
+5. **Lazy Load:** Load components on demand using route lazy loading
 
 ## Browser Compatibility
 
@@ -388,11 +234,6 @@ export class MultiPickerFormComponent extends BaseFormComponent {
 
 ## Troubleshooting
 
-### Date Picker Not Initializing
-- Ensure setTimeout(100ms) delay after drawer opens
-- Check that input element ID matches config
-- Verify DOM is ready before initialization
-
 ### Focus Issues on iOS
 - Font size must be >= 16px (prevents zoom)
 - Use `appearance: none` for proper styling
@@ -403,7 +244,12 @@ export class MultiPickerFormComponent extends BaseFormComponent {
 - Check that CSS uses `env(safe-area-inset-*)`
 - Test on actual device (simulator may not show correctly)
 
+### Date Input Not Working
+- Ensure you're using `type="date"` or `type="datetime-local"`
+- Check browser compatibility (all modern browsers support this)
+- Use proper date format (YYYY-MM-DD for date input)
+
 ## See Also
 - `form-controls.scss` - Full SCSS file with all available classes
-- `flatpickr.utils.ts` - Utility functions documentation
 - `base-form.component.ts` - Base class documentation
+- `datepicker.component.ts` - Custom date picker component

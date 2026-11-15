@@ -111,7 +111,7 @@ export class BackupService {
   private async restoreWorkBackup(backup: any): Promise<string> {
     // A. Clone the Work
     const workData = backup.work;
-    workData.name = `${workData.name} - Restored`;
+    workData.name = `${workData.name}`;
     delete workData.id;
     const newWorkId = await this.db.addWork(workData);
 

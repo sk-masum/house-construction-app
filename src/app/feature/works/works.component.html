@@ -28,12 +28,6 @@
       </button>
     </div>
   </div>
-  <!-- <div class="flex justify-between items-center mb-6">
-    <h1 class="text-2xl font-bold m-0 text-white">Projects & Works</h1>
-    <button nz-button nzType="primary" nzShape="round" (click)="openNewWork()">
-      <span nz-icon nzType="plus"></span> New Work
-    </button>
-  </div> -->
 
   <!-- Project Cards -->
   <div class="flex flex-col gap-4">
@@ -119,7 +113,13 @@
           nzTitle="1. Contract Details"
           [nzDisabled]="currentWorkId !== null"
         >
-          <form nz-form [formGroup]="workForm" nzLayout="vertical" class="mt-4">
+          <form
+            nz-form
+            [formGroup]="workForm"
+            (ngSubmit)="saveWorkStep()"
+            nzLayout="vertical"
+            class="mt-4"
+          >
             <nz-form-item>
               <nz-form-label nzRequired>Project Name</nz-form-label>
               <nz-form-control>
@@ -195,7 +195,7 @@
               nzType="primary"
               nzBlock
               nzSize="large"
-              (click)="saveWorkStep()"
+              type="submit"
               [disabled]="!workForm.valid"
             >
               Save & Continue

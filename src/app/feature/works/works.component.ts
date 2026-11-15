@@ -43,6 +43,7 @@ import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
   templateUrl: './works.component.html',
 })
 export class WorksComponent implements OnInit {
+  isSaving = false;
   works: Work[] = [];
 
   // Drawer & Stepper State
@@ -81,6 +82,7 @@ export class WorksComponent implements OnInit {
 
   initForms() {
     this.workForm = this.fb.group({
+      id: [null],
       name: [null, Validators.required],
       contractorName: [null, Validators.required],
       serviceType: ['Sq Ft', Validators.required],
@@ -137,12 +139,7 @@ export class WorksComponent implements OnInit {
   }
 
   openNewWork() {
-    this.workForm.reset({
-      serviceType: 'Sq Ft',
-      serviceRate: 0,
-      serviceQty: 1,
-      totalServiceCharge: 0,
-    });
+    this.workForm.reset();
     this.currentWorkId = null;
     this.currentEstimations = [];
     this.activeTab = 0; // Start at Step 1
@@ -150,7 +147,9 @@ export class WorksComponent implements OnInit {
   }
 
   async saveWorkStep() {
+    if (this.workForm.invalid || this.isSaving) return;
     if (this.workForm.valid) {
+      this.isSaving = true;
       const val = this.workForm.getRawValue();
       this.currentWorkId = await this.db.addWork(val);
 
@@ -161,9 +160,15 @@ export class WorksComponent implements OnInit {
       } else {
         // INSERT NEW
         this.currentWorkId = await this.db.addWork(val);
+        this.workForm.patchValue({ id: this.currentWorkId });
       }
 
       await this.loadWorks();
+
+      // If they updated the project they are currently viewing globally, broadcast the name change
+      if (this.db.activeWorkId$.value === val.id) {
+        this.db.worksListChanged$.next();
+      }
 
       // Move to Step 2: Estimations
       this.activeTab = 1;
@@ -206,8 +211,9 @@ export class WorksComponent implements OnInit {
 
   // 2. Add the Edit trigger
   async editWork(work: Work) {
-    this.currentWorkId = work.id!;
+    this.workForm.reset();
     this.workForm.patchValue(work);
+    this.currentWorkId = work.id!;
 
     // Fetch the estimations for this project
     this.currentEstimations = await this.db.getEstimationsForWork(work.id!);

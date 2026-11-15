@@ -24,7 +24,6 @@
     "@sqlite.org/sqlite-wasm": "^3.54.1-build1",
     "chart.js": "^4.6.1",
     "dexie": "^4.4.7",
-    "flatpickr": "^4.6.13",
     "jspdf": "^4.2.1",
     "jspdf-autotable": "^5.0.9",
     "ng-zorro-antd": "^18.2.1",

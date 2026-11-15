@@ -20,12 +20,10 @@ import {
   Material,
   MaterialFilters,
 } from '../../core/services/db.service';
-import { FlatpickrUtils } from '../../shared/utils/flatpickr.utils';
 import {
   TabSwitcherComponent,
   TabConfig,
 } from '../../shared/components/tab-switcher.component';
-import 'flatpickr/dist/flatpickr.min.css';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -105,9 +103,6 @@ export class MaterialsComponent implements OnInit, OnDestroy {
   detailItems: Material[] = [];
   builderDetailGroups: any[] = [];
   currentSqlFilters: MaterialFilters = {};
-
-  // Flatpickr instance
-  private datepickerInstance: any;
 
   private formSub!: Subscription;
   private filterSub!: Subscription;
@@ -316,25 +311,12 @@ export class MaterialsComponent implements OnInit, OnDestroy {
       });
     }
     this.isDrawerVisible = true;
-
-    setTimeout(() => {
-      this.initializeFlatpickr();
-    }, 100);
   }
 
   closeDrawer(): void {
     this.isDrawerVisible = false;
-    FlatpickrUtils.destroy(this.datepickerInstance);
-    this.datepickerInstance = null;
   }
 
-  private initializeFlatpickr(): void {
-    this.datepickerInstance = FlatpickrUtils.initializeDatePicker(
-      this.materialForm,
-      'deliveryDateInput',
-      'deliveryDate',
-    );
-  }
   async submitForm() {
     if (this.materialForm.valid) {
       const formValue = this.materialForm.getRawValue();

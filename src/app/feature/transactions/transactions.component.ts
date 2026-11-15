@@ -8,12 +8,10 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { DbService, Transaction } from '../../core/services/db.service';
-import { FlatpickrUtils } from '../../shared/utils/flatpickr.utils';
 import {
   TabSwitcherComponent,
   TabConfig,
 } from '../../shared/components/tab-switcher.component';
-import 'flatpickr/dist/flatpickr.min.css';
 
 import { NzDrawerModule } from 'ng-zorro-antd/drawer';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -74,9 +72,6 @@ export class TransactionsComponent implements OnInit, OnDestroy {
   isDetailVisible = false;
   detailTitle = '';
   detailItems: Transaction[] = [];
-
-  // Flatpickr instance
-  private datetimePickerInstance: any;
 
   constructor(
     private fb: FormBuilder,
@@ -196,13 +191,10 @@ export class TransactionsComponent implements OnInit, OnDestroy {
       this.transactionForm.reset({ dateTime: new Date() });
     }
     this.isDrawerVisible = true;
-    setTimeout(() => this.initializeFlatpickr(), 100);
   }
 
   closeDrawer(): void {
     this.isDrawerVisible = false;
-    FlatpickrUtils.destroy(this.datetimePickerInstance);
-    this.datetimePickerInstance = null;
   }
 
   async submitForm() {
@@ -245,14 +237,6 @@ export class TransactionsComponent implements OnInit, OnDestroy {
     }
   }
 
-  // --- Flatpickr Initialization ---
-  private initializeFlatpickr(): void {
-    this.datetimePickerInstance = FlatpickrUtils.initializeDatetimePicker(
-      this.transactionForm,
-      'datetimeInput',
-      'dateTime',
-    );
-  }
   ngOnDestroy(): void {
     if (this.workSub) this.workSub.unsubscribe();
   }
