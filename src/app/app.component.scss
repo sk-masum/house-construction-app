@@ -8,7 +8,7 @@
 .safe-area-view {
   min-height: 100vh;
   min-height: 100dvh;
-  padding-top: calc(var(--safe-area-top) + 4px);
+  padding-top: 4px;
   padding-right: var(--safe-area-right);
   padding-bottom: calc(
     var(--navigation-height) + var(--safe-area-bottom) + var(--navigation-gap)

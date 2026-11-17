@@ -332,7 +332,7 @@
 </div>
 
 <!-- Price & Material Manager Drawer -->
-<nz-drawer
+<!-- <nz-drawer
   [nzVisible]="isPriceDrawerVisible"
   nzPlacement="right"
   nzTitle="Master Prices"
@@ -345,7 +345,6 @@
         materials.
       </p>
 
-      <!-- Existing Materials -->
       <div class="bg-neutral-800 rounded-xl border border-neutral-700 p-2">
         @for (mat of dynamicMaterialOptions; track mat) {
           <div
@@ -365,18 +364,16 @@
         }
       </div>
 
-      <!-- Add New Material inline -->
       <div class="bg-neutral-900 rounded-xl border border-neutral-700 p-3 mt-4">
         <p class="text-xs font-bold text-neutral-300 uppercase mb-3">
           Add New Material
         </p>
         <div class="flex gap-2">
-          <input
-            nz-input
+          <sk-textfield
             [(ngModel)]="newMaterialName"
             placeholder="Name (e.g. Paint)"
             class="bg-neutral-800 border-neutral-600 text-white"
-          />
+          ></sk-textfield>
           <sk-textfield
             [(ngModel)]="newMaterialPrice"
             placeholder="Rate"
@@ -386,16 +383,16 @@
         </div>
       </div>
 
-      <button
-        nz-button
-        nzType="primary"
-        nzBlock
-        nzSize="large"
-        class="mt-4"
-        (click)="saveUpdatedPrices()"
-      >
+      <button class="mt-4 theme-action-button" (click)="saveUpdatedPrices()">
         Save Global Prices
       </button>
     </div>
   </ng-container>
-</nz-drawer>
+</nz-drawer> -->
+
+<app-material-manager
+  (loadMasterData)="loadMasterData()"
+  [isPriceDrawerVisible]="isPriceDrawerVisible"
+  [dynamicMaterialOptions]="dynamicMaterialOptions"
+  [dynamicPriceDefaults]="dynamicPriceDefaults"
+></app-material-manager>

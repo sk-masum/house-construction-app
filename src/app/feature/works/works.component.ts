@@ -1,7 +1,14 @@
-import { Component, OnInit, ChangeDetectorRef, ViewChild } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  ChangeDetectorRef,
+  ViewChild,
+  inject,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { StepperComponent } from './components/stepper/stepper.component';
 import { TextfieldComponent } from '../../shared/components/textfield/textfield.component';
+import { MaterialManagerComponent } from './components/material-manager/material-manager.component';
 import {
   FormBuilder,
   FormGroup,
@@ -39,6 +46,7 @@ import { CdkStepperModule } from '@angular/cdk/stepper';
     SelectComponent,
     CdkStepperModule,
     StepperComponent,
+    MaterialManagerComponent,
   ],
   templateUrl: './works.component.html',
 })

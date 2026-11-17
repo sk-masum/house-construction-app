@@ -1,0 +1,59 @@
+<nz-drawer
+  [nzVisible]="isPriceDrawerVisible"
+  nzPlacement="right"
+  nzTitle="Master Prices"
+  (nzOnClose)="closePriceManager()"
+>
+  <ng-container *nzDrawerContent>
+    <div class="flex flex-col gap-4 pb-10">
+      <p class="text-xs text-neutral-400 m-0">
+        These default prices will auto-fill when logging new estimates or
+        materials.
+      </p>
+
+      <!-- Existing Materials -->
+      <div class="bg-neutral-800 rounded-xl border border-neutral-700 p-2">
+        @for (mat of dynamicMaterialOptions; track mat) {
+          <div
+            class="flex justify-between items-center p-2 border-b border-neutral-700 last:border-0"
+          >
+            <span class="text-white font-medium">{{ mat }}</span>
+            <div class="flex items-center gap-2">
+              <span class="text-neutral-500 text-xs">₹</span>
+              <sk-textfield
+                [(ngModel)]="dynamicPriceDefaults[mat]"
+                type="number"
+                min="0"
+                class="w-20 bg-neutral-900 text-white border-neutral-600"
+              ></sk-textfield>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Add New Material inline -->
+      <div class="bg-neutral-900 rounded-xl border border-neutral-700 p-3 mt-4">
+        <p class="text-xs font-bold text-neutral-300 uppercase mb-3">
+          Add New Material
+        </p>
+        <div class="flex gap-2">
+          <sk-textfield
+            [(ngModel)]="newMaterialName"
+            placeholder="Name (e.g. Paint)"
+            class="bg-neutral-800 border-neutral-600 text-white"
+          ></sk-textfield>
+          <sk-textfield
+            [(ngModel)]="newMaterialPrice"
+            placeholder="Rate"
+            type="number"
+            class="w-24 bg-neutral-800 border-neutral-600 text-white"
+          ></sk-textfield>
+        </div>
+      </div>
+
+      <button class="mt-4 theme-action-button" (click)="saveUpdatedPrices()">
+        Save Global Prices
+      </button>
+    </div>
+  </ng-container>
+</nz-drawer>
