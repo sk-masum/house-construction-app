@@ -1,0 +1,30 @@
+<!-- SECTION 4: ACTIVITY TIMELINE -->
+<div class="my-8">
+  <h2
+    class="text-sm font-bold text-neutral-300 mb-4 uppercase tracking-wider flex items-center gap-2"
+  >
+    <span nz-icon nzType="clock-circle" class="text-base"></span>
+    Recent Activity
+  </h2>
+
+  <div class="surface-card p-5 rounded-xl">
+    <nz-timeline *ngIf="recentActivity.length > 0; else emptyState">
+      <nz-timeline-item
+        *ngFor="let item of recentActivity"
+        [nzColor]="item.color"
+      >
+        <p class="text-white font-semibold m-0 text-sm">{{ item.title }}</p>
+        <p class="text-neutral-400 text-xs mt-1 mb-1">{{ item.subtitle }}</p>
+        <p class="text-neutral-500 text-[10px] m-0">
+          {{ item.date | date: "MMM d, y, h:mm a" }}
+        </p>
+      </nz-timeline-item>
+    </nz-timeline>
+
+    <ng-template #emptyState>
+      <p class="text-neutral-500 text-sm m-0 text-center py-4">
+        No construction activity logged yet.
+      </p>
+    </ng-template>
+  </div>
+</div>

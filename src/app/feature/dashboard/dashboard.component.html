@@ -1,222 +1,44 @@
 <div class="px-4 pt-4">
-  <!-- Dynamic Title -->
-  <!-- <div class="mb-6">
-    <h1 class="text-lg font-semibold text-white m-0">
-      {{ activeWork ? activeWork.name : "Global Site Overview" }}
-    </h1>
-    @if (activeWork) {
-      <p class="text-xs text-neutral-500 m-0 mt-1">
-        Contractor:
-        <span class="text-emerald-400">{{ activeWork.contractorName }}</span>
-      </p>
-    }
-  </div> -->
+  <app-dashboard-balance
+    class="contents"
+    [activeProject]="activeProject"
+    [outstandingBalance]="outstandingBalance"
+    [isAdvance]="isAdvance"
+  ></app-dashboard-balance>
 
-  <!-- Wallet Hero: Total Project Balance -->
-  <div
-    class="bg-neutral-800 p-5 rounded-2xl border border-neutral-700 shadow-lg mb-4 flex justify-between items-center relative overflow-hidden"
-  >
-    <div class="z-10">
-      <p class="text-[11px] text-neutral-400 uppercase tracking-wider mb-1 m-0">
-        {{ activeWork ? "Project Due Balance" : "Global Due Balance" }}
-      </p>
-      <div class="flex items-baseline gap-2 mt-1">
-        <p
-          class="text-2xl font-bold m-0"
-          [ngClass]="
-            isAdvance
-              ? 'text-emerald-400'
-              : outstandingBalance === 0
-                ? 'text-white'
-                : 'text-red-400'
-          "
-        >
-          ₹{{
-            (isAdvance ? outstandingBalance * -1 : outstandingBalance)
-              | number: "1.0-0"
-          }}
-        </p>
-        @if (isAdvance) {
-          <span
-            class="text-[10px] font-bold uppercase text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-2 py-1 rounded-md"
-            >Advance</span
-          >
-        } @else if (outstandingBalance > 0) {
-          <span
-            class="text-[10px] font-bold uppercase text-red-400 bg-red-400/10 border border-red-400/20 px-2 py-1 rounded-md"
-            >To Pay</span
-          >
-        } @else {
-          <span
-            class="text-[10px] font-bold uppercase text-neutral-300 bg-neutral-600 border border-neutral-500 px-2 py-1 rounded-md"
-            >Settled</span
-          >
-        }
-      </div>
-    </div>
-    <div class="z-10 opacity-20">
-      <span
-        nz-icon
-        nzType="wallet"
-        class="text-6xl"
-        [ngClass]="isAdvance ? 'text-emerald-400' : 'text-red-400'"
-      ></span>
-    </div>
-    <div
-      class="absolute -right-8 -bottom-8 w-32 h-32 rounded-full blur-3xl"
-      [ngClass]="isAdvance ? 'bg-emerald-500/20' : 'bg-red-500/20'"
-    ></div>
-  </div>
+  <app-dashboard-estimation
+    class="contents"
+    [activeProject]="activeProject"
+    [totalEstimatedMaterialCost]="totalEstimatedMaterialCost"
+    [totalServiceCharge]="totalServiceCharge"
+    [progressData]="progressData"
+  ></app-dashboard-estimation>
 
-  <!-- Liability Split Grid -->
-  <div class="grid grid-cols-2 gap-4 mb-6">
-    <div class="surface-card p-4 rounded-xl">
-      <p class="text-[10px] text-neutral-500 uppercase tracking-wider m-0 mb-1">
-        Total Materials
-      </p>
-      <p class="text-lg font-semibold text-white m-0">
-        ₹{{ totalMaterialCost | number: "1.0-0" }}
-      </p>
-      @if (activeWork && totalEstimatedMaterialCost > 0) {
-        <p
-          class="text-[9px] mt-1 m-0 font-medium"
-          [ngClass]="
-            totalMaterialCost > totalEstimatedMaterialCost
-              ? 'text-red-400'
-              : 'text-neutral-500'
-          "
-        >
-          Est. Budget: ₹{{ totalEstimatedMaterialCost | number: "1.0-0" }}
-        </p>
-      }
-    </div>
-    <div class="surface-card p-4 rounded-xl">
-      <p class="text-[10px] text-neutral-500 uppercase tracking-wider m-0 mb-1">
-        Labor / Contracts
-      </p>
-      <p class="text-lg font-semibold text-white m-0">
-        ₹{{ totalServiceCharge | number: "1.0-0" }}
-      </p>
-      @if (activeWork) {
-        <p class="text-[9px] text-neutral-500 m-0 mt-1">
-          {{ activeWork.serviceQty }} {{ activeWork.serviceType }} &#64; ₹{{
-            activeWork.serviceRate
-          }}
-        </p>
-      }
-    </div>
-  </div>
+  <app-dashboard-current-purchase
+    class="contents"
+    [activeProject]="activeProject"
+    [totalMaterialCost]="totalMaterialCost"
+    [totalEstimatedMaterialCost]="totalEstimatedMaterialCost"
+    [contractorPaid]="contractorPaid"
+    [totalTransactions]="totalTransactions"
+  ></app-dashboard-current-purchase>
 
-  <!-- NEW: Planned vs Actual Estimations (Only visible if a specific project is selected) -->
-  @if (activeWork && progressData.length > 0) {
-    <div
-      class="bg-neutral-800 p-5 rounded-xl border border-neutral-700 shadow-sm mb-6"
-    >
-      <h2
-        class="text-sm font-semibold text-neutral-300 mb-4 uppercase tracking-wider"
-      >
-        Material Budget Health
-      </h2>
+  <app-dashboard-payment-breakdown
+    class="contents"
+    [contractorTotal]="contractorTotal"
+    [contractorPaid]="contractorPaid"
+    [materialTotal]="materialTotal"
+    [materialPaid]="materialPaid"
+  ></app-dashboard-payment-breakdown>
 
-      <div class="flex flex-col gap-4">
-        @for (item of progressData; track item.materialName) {
-          <div>
-            <div class="flex justify-between items-end mb-1">
-              <h4 class="text-white font-medium text-sm m-0">
-                {{ item.materialName }}
-              </h4>
-              <div class="text-xs text-neutral-400">
-                <span
-                  [ngClass]="
-                    item.actualQty > item.estimatedQty
-                      ? 'text-red-400 font-bold'
-                      : 'text-white'
-                  "
-                  >{{ item.actualQty }}</span
-                >
-                / {{ item.estimatedQty || 0 }} {{ item.unit }}
-              </div>
-            </div>
+  <app-dashboard-purchase-distribution
+    class="contents"
+    [pieChartData]="pieChartData"
+    [pieChartOptions]="pieChartOptions"
+  ></app-dashboard-purchase-distribution>
 
-            <nz-progress
-              [nzPercent]="item.percent > 100 ? 100 : item.percent"
-              [nzShowInfo]="false"
-              [nzStatus]="
-                item.actualQty > item.estimatedQty ? 'exception' : 'active'
-              "
-              [nzStrokeColor]="
-                item.actualQty > item.estimatedQty ? '#f87171' : '#60a5fa'
-              "
-              nzSize="small"
-              class="block"
-            >
-            </nz-progress>
-
-            @if (item.actualQty > item.estimatedQty) {
-              <p class="text-[10px] text-red-400 mt-1 m-0">
-                <span nz-icon nzType="warning"></span> Over budget by
-                {{ item.actualQty - item.estimatedQty }} {{ item.unit }}
-              </p>
-            } @else if (item.estimatedQty === 0) {
-              <p class="text-[10px] text-orange-400 mt-1 m-0">
-                <span nz-icon nzType="info-circle"></span> Unplanned material
-              </p>
-            }
-          </div>
-        }
-      </div>
-    </div>
-  }
-
-  <!-- Spend Analytics Chart -->
-  <div class="surface-card p-5 rounded-xl mb-6">
-    <h2
-      class="text-sm font-semibold text-neutral-300 mb-4 uppercase tracking-wider"
-    >
-      Spend Breakdown
-    </h2>
-    @if (pieChartData.labels && pieChartData.labels.length > 0) {
-      <div class="h-52 relative">
-        <canvas
-          baseChart
-          [data]="pieChartData"
-          [options]="pieChartOptions"
-          [type]="'doughnut'"
-        ></canvas>
-      </div>
-    } @else {
-      <div class="text-center text-neutral-500 py-6">
-        <span
-          nz-icon
-          nzType="pie-chart"
-          class="text-3xl mb-2 opacity-50"
-        ></span>
-        <p class="text-xs m-0">No materials logged yet.</p>
-      </div>
-    }
-  </div>
-
-  <!-- Unified Activity Timeline -->
-  <h2 class="text-lg font-semibold text-neutral-300 mb-4">Recent Activity</h2>
-
-  <div class="surface-card p-5 rounded-xl">
-    <nz-timeline *ngIf="recentActivity.length > 0; else emptyState">
-      <nz-timeline-item
-        *ngFor="let item of recentActivity"
-        [nzColor]="item.color"
-      >
-        <p class="text-white font-semibold m-0 text-sm">{{ item.title }}</p>
-        <p class="text-neutral-400 text-xs mt-1 mb-1">{{ item.subtitle }}</p>
-        <p class="text-neutral-500 text-[10px] m-0">
-          {{ item.date | date: "MMM d, y, h:mm a" }}
-        </p>
-      </nz-timeline-item>
-    </nz-timeline>
-
-    <ng-template #emptyState>
-      <p class="text-neutral-500 text-sm m-0 text-center py-4">
-        No construction activity logged yet.
-      </p>
-    </ng-template>
-  </div>
+  <app-dashboard-recent-activity
+    class="contents"
+    [recentActivity]="recentActivity"
+  ></app-dashboard-recent-activity>
 </div>

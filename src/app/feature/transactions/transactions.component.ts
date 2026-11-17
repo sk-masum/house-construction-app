@@ -7,7 +7,13 @@ import {
   Validators,
   ReactiveFormsModule,
 } from '@angular/forms';
-import { DbService, Transaction } from '../../core/services/db.service';
+import { ProjectService } from '../../core/services/project.service';
+import { DirectoryService } from '../../core/services/directory.service';
+import {
+  Transaction,
+  TransactionFilters,
+  TransactionService,
+} from '../../core/services/transaction.service';
 import {
   TabSwitcherComponent,
   TabConfig,
@@ -22,6 +28,17 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { Subscription } from 'rxjs';
 import { DatepickerComponent } from '../../shared/components/datepicker/datepicker.component';
+
+interface ReceiverSummary {
+  name: string;
+  count: number;
+  totalAmount: number;
+}
+
+interface ReceiverOption {
+  name: string;
+  group: 'Builders' | 'Contractors' | 'Previous Receivers';
+}
 
 @Component({
   selector: 'app-transactions',
@@ -43,15 +60,33 @@ import { DatepickerComponent } from '../../shared/components/datepicker/datepick
   templateUrl: './transactions.component.html',
 })
 export class TransactionsComponent implements OnInit, OnDestroy {
-  private workSub!: Subscription;
-  readonly RECEIVER_OPTIONS = ['SS', 'Nice', 'KGN', 'Sukhchand'];
+  private projectSub!: Subscription;
+  private directorySub!: Subscription;
+  private directoryReceivers: ReceiverOption[] = [];
+
+  get receiverOptions(): ReceiverOption[] {
+    const directoryNames = new Set(
+      this.directoryReceivers.map((receiver) => receiver.name),
+    );
+    const previousNames = Array.from(new Set(
+      this.displayTransactions.map((transaction) => transaction.receiver),
+    )).filter((name) => !directoryNames.has(name))
+      .sort((a, b) => a.localeCompare(b));
+    return [
+      ...this.directoryReceivers,
+      ...previousNames.map((name): ReceiverOption => ({
+        name,
+        group: 'Previous Receivers',
+      })),
+    ];
+  }
 
   readonly tabs: TabConfig[] = [
     { label: 'By Date', value: 'date' },
     { label: 'By Receiver', value: 'receiver' },
   ];
 
-  currentSqlFilters: any = {};
+  currentSqlFilters: TransactionFilters = {};
   isLoading = false;
 
   // Form & View States
@@ -61,12 +96,11 @@ export class TransactionsComponent implements OnInit, OnDestroy {
   sortOrder: 'desc' | 'asc' = 'desc';
 
   // Data States
-  rawTransactions: Transaction[] = [];
   displayTransactions: Transaction[] = [];
 
   // Aggregated Groups
   dateGroups: any[] = [];
-  receiverGroups: any[] = [];
+  receiverGroups: ReceiverSummary[] = [];
 
   // Drill-Down States
   isDetailVisible = false;
@@ -75,15 +109,57 @@ export class TransactionsComponent implements OnInit, OnDestroy {
 
   constructor(
     private fb: FormBuilder,
-    private db: DbService,
+    private projectService: ProjectService,
+    private transactionService: TransactionService,
+    private directoryService: DirectoryService,
     private cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
     this.initForm();
-    this.workSub = this.db.activeWorkId$.subscribe(async () => {
+    void this.loadReceiverOptions();
+    this.directorySub = this.directoryService.entriesChanged$.subscribe(
+      async ({ previousName, name }) => {
+        if (previousName && name) {
+          if (this.transactionForm.get('receiver')?.value === previousName) {
+            this.transactionForm.patchValue({ receiver: name }, { emitEvent: false });
+          }
+          if (this.transactionForm.get('provider')?.value === previousName) {
+            this.transactionForm.patchValue({ provider: name }, { emitEvent: false });
+          }
+          if (this.detailTitle === previousName) this.detailTitle = name;
+          await this.loadTransactions();
+          if (this.isDetailVisible) await this.updateDetailView();
+        }
+        await this.loadReceiverOptions();
+      },
+    );
+    this.projectSub = this.projectService.activeProjectId$.subscribe(async () => {
       await this.loadTransactions();
     });
+  }
+
+  private async loadReceiverOptions() {
+    try {
+      const [builders, contractors] = await Promise.all([
+        this.directoryService.getEntries('builders'),
+        this.directoryService.getEntries('contractors'),
+      ]);
+      this.directoryReceivers = [
+        ...builders.map((builder): ReceiverOption => ({
+          name: builder.name,
+          group: 'Builders',
+        })),
+        ...contractors.map((contractor): ReceiverOption => ({
+          name: contractor.name,
+          group: 'Contractors',
+        })),
+      ];
+      this.cdr.markForCheck();
+    } catch (error) {
+      console.error('Failed to load payment receivers', error);
+      alert('Failed to load payment receivers. Please reopen Ledger to retry.');
+    }
   }
 
   initForm(): void {
@@ -109,19 +185,36 @@ export class TransactionsComponent implements OnInit, OnDestroy {
       sortOrder: this.sortOrder,
     };
 
-    // Fetch the detailed list AND the summary aggregations concurrently
-    const [display, receiverAgg] = await Promise.all([
-      this.db.getFilteredTransactions(this.currentSqlFilters),
-      this.db.getReceiverSummaries(this.currentSqlFilters),
-    ]);
+    try {
+      const display = await this.transactionService.getFilteredTransactions(
+        this.currentSqlFilters,
+      );
+      this.displayTransactions = display;
+      this.receiverGroups = this.buildReceiverSummaries(display);
+      this.buildDateGroups();
+    } finally {
+      this.isLoading = false;
+      this.cdr.detectChanges();
+    }
+  }
 
-    this.displayTransactions = display;
-    this.receiverGroups = receiverAgg;
-
-    this.buildDateGroups(); // Group the flat list for the Date timeline UI
-
-    this.isLoading = false;
-    this.cdr.detectChanges();
+  private buildReceiverSummaries(
+    transactions: Transaction[],
+  ): ReceiverSummary[] {
+    const groups = new Map<string, ReceiverSummary>();
+    for (const transaction of transactions) {
+      const group = groups.get(transaction.receiver) ?? {
+        name: transaction.receiver,
+        count: 0,
+        totalAmount: 0,
+      };
+      group.count += 1;
+      group.totalAmount += transaction.amount || 0;
+      groups.set(transaction.receiver, group);
+    }
+    return Array.from(groups.values()).sort(
+      (a, b) => b.totalAmount - a.totalAmount,
+    );
   }
 
   buildDateGroups(): void {
@@ -166,7 +259,8 @@ export class TransactionsComponent implements OnInit, OnDestroy {
     const drillDownFilters = { ...this.currentSqlFilters };
     if (type === 'receiver') drillDownFilters.receivers = [title];
 
-    this.detailItems = await this.db.getFilteredTransactions(drillDownFilters);
+    this.detailItems =
+      await this.transactionService.getFilteredTransactions(drillDownFilters);
     this.cdr.detectChanges();
   }
 
@@ -179,12 +273,14 @@ export class TransactionsComponent implements OnInit, OnDestroy {
     if (this.activeView === 'receiver') {
       drillDownFilters.receivers = [this.detailTitle];
     }
-    this.detailItems = await this.db.getFilteredTransactions(drillDownFilters);
+    this.detailItems =
+      await this.transactionService.getFilteredTransactions(drillDownFilters);
     this.cdr.detectChanges();
   }
 
   // --- CRUD Methods ---
   openDrawer(transaction?: Transaction): void {
+    void this.loadReceiverOptions();
     if (transaction) {
       this.transactionForm.patchValue(transaction);
     } else {
@@ -204,7 +300,7 @@ export class TransactionsComponent implements OnInit, OnDestroy {
       // 1. BULLETPROOF OBJECT CREATION
       const transactionToSave = {
         ...formValue,
-        workId: this.db.activeWorkId$.value || null, // Safely inject the context
+        projectId: this.projectService.activeProjectId$.value,
       };
 
       // 2. Format Date
@@ -212,12 +308,12 @@ export class TransactionsComponent implements OnInit, OnDestroy {
         transactionToSave.dateTime = new Date(transactionToSave.dateTime);
       }
 
-      // 3. Route to SQLite
+      // Save through the Turso-backed transaction service.
       if (transactionToSave.id) {
-        await this.db.updateTransaction(transactionToSave);
+        await this.transactionService.updateTransaction(transactionToSave);
       } else {
         delete transactionToSave.id;
-        await this.db.addTransaction(transactionToSave);
+        await this.transactionService.addTransaction(transactionToSave);
       }
 
       this.closeDrawer();
@@ -227,7 +323,7 @@ export class TransactionsComponent implements OnInit, OnDestroy {
 
   async deleteTransaction(id: number) {
     if (id) {
-      await this.db.deleteTransaction(id);
+      await this.transactionService.deleteTransaction(id);
       await this.loadTransactions();
 
       if (this.isDetailVisible) {
@@ -238,6 +334,7 @@ export class TransactionsComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.workSub) this.workSub.unsubscribe();
+    this.directorySub?.unsubscribe();
+    if (this.projectSub) this.projectSub.unsubscribe();
   }
 }

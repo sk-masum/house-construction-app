@@ -1,32 +1,16 @@
 <div class="px-4 pt-4 pb-[80px]">
   <div class="flex justify-between items-center mb-6">
     <h1 class="text-lg font-semibold m-0 text-white">Projects</h1>
-    <div class="flex gap-2 items-center">
-      <button
-        nz-button
-        nzType="default"
-        nzShape="circle"
-        (click)="openPriceManager()"
-        class="!h-10 !w-10 !p-0 !inline-flex !items-center !justify-center !border-neutral-700 !bg-neutral-800/50 hover:!border-emerald-400 hover:!bg-neutral-700 hover:!text-emerald-400 !text-neutral-400 transition-all"
-      >
-        <span
-          nz-icon
-          nzType="setting"
-          nzTheme="outline"
-          class="text-lg !leading-none"
-        ></span>
-      </button>
-      <button
-        nz-button
-        nzType="primary"
-        nzShape="round"
-        class="theme-action-button"
-        (click)="openNewWork()"
-      >
-        <span nz-icon nzType="plus"></span>
-        <span>Add</span>
-      </button>
-    </div>
+    <button
+      nz-button
+      nzType="primary"
+      nzShape="round"
+      class="theme-action-button"
+      (click)="openNewWork()"
+    >
+      <span nz-icon nzType="plus"></span>
+      <span>Add</span>
+    </button>
   </div>
 
   <!-- Project Cards -->
@@ -133,11 +117,12 @@
             <nz-form-item>
               <nz-form-label nzRequired>Contractor</nz-form-label>
               <nz-form-control>
-                <sk-textfield
+                <app-select
                   formControlName="contractorName"
-                  placeholder="e.g., Sukhchand"
+                  [options]="contractorOptions"
+                  placeholder="Select contractor"
                   class="w-full"
-                ></sk-textfield>
+                ></app-select>
               </nz-form-control>
             </nz-form-item>
 
@@ -330,69 +315,3 @@
     </ng-container>
   </nz-drawer>
 </div>
-
-<!-- Price & Material Manager Drawer -->
-<!-- <nz-drawer
-  [nzVisible]="isPriceDrawerVisible"
-  nzPlacement="right"
-  nzTitle="Master Prices"
-  (nzOnClose)="closePriceManager()"
->
-  <ng-container *nzDrawerContent>
-    <div class="flex flex-col gap-4 pb-10">
-      <p class="text-xs text-neutral-400 m-0">
-        These default prices will auto-fill when logging new estimates or
-        materials.
-      </p>
-
-      <div class="bg-neutral-800 rounded-xl border border-neutral-700 p-2">
-        @for (mat of dynamicMaterialOptions; track mat) {
-          <div
-            class="flex justify-between items-center p-2 border-b border-neutral-700 last:border-0"
-          >
-            <span class="text-white font-medium">{{ mat }}</span>
-            <div class="flex items-center gap-2">
-              <span class="text-neutral-500 text-xs">₹</span>
-              <sk-textfield
-                [(ngModel)]="dynamicPriceDefaults[mat]"
-                type="number"
-                min="0"
-                class="w-20 bg-neutral-900 text-white border-neutral-600"
-              ></sk-textfield>
-            </div>
-          </div>
-        }
-      </div>
-
-      <div class="bg-neutral-900 rounded-xl border border-neutral-700 p-3 mt-4">
-        <p class="text-xs font-bold text-neutral-300 uppercase mb-3">
-          Add New Material
-        </p>
-        <div class="flex gap-2">
-          <sk-textfield
-            [(ngModel)]="newMaterialName"
-            placeholder="Name (e.g. Paint)"
-            class="bg-neutral-800 border-neutral-600 text-white"
-          ></sk-textfield>
-          <sk-textfield
-            [(ngModel)]="newMaterialPrice"
-            placeholder="Rate"
-            type="number"
-            class="w-24 bg-neutral-800 border-neutral-600 text-white"
-          ></sk-textfield>
-        </div>
-      </div>
-
-      <button class="mt-4 theme-action-button" (click)="saveUpdatedPrices()">
-        Save Global Prices
-      </button>
-    </div>
-  </ng-container>
-</nz-drawer> -->
-
-<app-material-manager
-  (loadMasterData)="loadMasterData()"
-  [isPriceDrawerVisible]="isPriceDrawerVisible"
-  [dynamicMaterialOptions]="dynamicMaterialOptions"
-  [dynamicPriceDefaults]="dynamicPriceDefaults"
-></app-material-manager>

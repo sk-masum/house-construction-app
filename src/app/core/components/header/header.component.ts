@@ -1,11 +1,11 @@
 import { Component } from '@angular/core';
 import { ProjectSelectorComponent } from '../project-selector/project-selector.component';
-import { ImportExportDropdownComponent } from '../import-export-dropdown/import-export-dropdown.component';
+import { MenuComponent } from '../menu/menu.component';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [ProjectSelectorComponent, ImportExportDropdownComponent],
+  imports: [ProjectSelectorComponent, MenuComponent],
   templateUrl: './header.component.html',
   styleUrl: './header.component.scss',
 })

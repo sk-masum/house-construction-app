@@ -1,0 +1,119 @@
+<nz-drawer
+  [nzVisible]="visible"
+  [nzTitle]="title"
+  nzPlacement="right"
+  nzWidth="min(400px, 100vw)"
+  [nzClosable]="!isSaving"
+  [nzMaskClosable]="!isSaving"
+  [nzKeyboard]="!isSaving"
+  (nzOnClose)="close()"
+>
+  <ng-container *nzDrawerContent>
+    <div class="flex flex-col gap-4 pb-10">
+      <p class="text-xs text-neutral-400 m-0">
+        @if (kind === "builders") {
+          Manage builders and the delivery charges used for new material purchases.
+        } @else {
+          Manage contractors and the per-square-foot rates used for new projects.
+        }
+        Renaming also updates matching historical names. Deleting only removes
+        the directory entry; historical records are kept.
+      </p>
+
+      @if (error) {
+        <p role="alert" class="text-sm text-red-400 m-0">{{ error }}</p>
+      }
+      @if (success) {
+        <p role="status" class="text-sm text-emerald-400 m-0">{{ success }}</p>
+      }
+
+      @if (isLoading) {
+        <p role="status" class="text-sm text-neutral-400">Loading {{ title.toLowerCase() }}...</p>
+      } @else if (loadFailed) {
+        <button type="button" class="theme-action-button" (click)="loadEntries()">Retry</button>
+      } @else {
+        <fieldset [disabled]="isSaving" class="border-0 p-0 m-0 min-w-0 flex flex-col gap-4">
+          <div class="bg-neutral-800 rounded-xl border border-neutral-700 p-3">
+            <p class="text-xs text-neutral-400 m-0 mb-3">{{ rateLabel }}</p>
+            @for (entry of entries; track entry.name) {
+              <div class="flex justify-between items-center gap-3 py-3 border-b border-neutral-700 last:border-0">
+                <div class="min-w-0">
+                  <p class="text-white font-medium break-words m-0">{{ entry.name }}</p>
+                  <p class="text-xs text-neutral-400 m-0 mt-1">
+                    ₹{{ entry.defaultRate | number: "1.0-2" }}
+                    {{ kind === "contractors" ? "/ sqft" : "delivery" }}
+                  </p>
+                </div>
+                <div class="flex flex-shrink-0 gap-3">
+                  <button
+                    type="button"
+                    class="text-emerald-400 bg-transparent border-0 p-1 cursor-pointer"
+                    [attr.aria-label]="'Edit ' + entry.name"
+                    (click)="editEntry(entry)"
+                  >Edit</button>
+                  <button
+                    type="button"
+                    nz-popconfirm
+                    [nzPopconfirmTitle]="'Delete ' + entry.name + '? Historical records will be kept.'"
+                    nzPopconfirmPlacement="left"
+                    nzOkText="Delete"
+                    class="text-red-400 bg-transparent border-0 p-1 cursor-pointer"
+                    [attr.aria-label]="'Delete ' + entry.name"
+                    (nzOnConfirm)="deleteEntry(entry)"
+                  >Delete</button>
+                </div>
+              </div>
+            } @empty {
+              <p class="text-xs text-neutral-500 m-0">No {{ title.toLowerCase() }} added yet.</p>
+            }
+          </div>
+
+          <div #entryEditor class="bg-neutral-900 rounded-xl border border-neutral-700 p-3 flex flex-col gap-3">
+            <p class="text-xs font-bold text-neutral-300 uppercase m-0">
+              {{ editingName !== null ? "Edit" : "Add" }}
+              {{ kind === "builders" ? "Builder" : "Contractor" }}
+            </p>
+            <label class="text-xs text-neutral-400">
+              Name
+              <sk-textfield
+                [(ngModel)]="newName"
+                placeholder="Name"
+              ></sk-textfield>
+            </label>
+            <label class="text-xs text-neutral-400">
+              {{ rateLabel }}
+              <sk-textfield
+                [(ngModel)]="newRate"
+                type="number"
+                placeholder="0"
+              ></sk-textfield>
+            </label>
+            @if (editingName !== null && newName.trim() !== editingName) {
+              <p class="text-xs text-amber-400 m-0">
+                Matching historical names will be updated when you save.
+              </p>
+            }
+          </div>
+
+          <div class="flex flex-wrap gap-3">
+            <button
+              type="button"
+              class="theme-action-button"
+              [disabled]="!newName.trim()"
+              (click)="save()"
+            >
+              {{ isSaving ? "Saving..." : editingName !== null ? "Save Changes" : "Add " + (kind === "builders" ? "Builder" : "Contractor") }}
+            </button>
+            @if (editingName !== null) {
+              <button
+                type="button"
+                class="text-neutral-300 bg-transparent border-0 px-3 cursor-pointer"
+                (click)="cancelEdit()"
+              >Cancel</button>
+            }
+          </div>
+        </fieldset>
+      }
+    </div>
+  </ng-container>
+</nz-drawer>
