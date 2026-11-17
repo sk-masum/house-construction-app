@@ -1,14 +1,15 @@
 import {
   Component,
   OnInit,
+  OnDestroy,
   ChangeDetectorRef,
   ViewChild,
-  inject,
 } from '@angular/core';
+import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { StepperComponent } from './components/stepper/stepper.component';
 import { TextfieldComponent } from '../../shared/components/textfield/textfield.component';
-import { MaterialManagerComponent } from './components/material-manager/material-manager.component';
+import { MaterialManagerComponent } from '../../core/components/material-manager/material-manager.component';
 import {
   FormBuilder,
   FormGroup,
@@ -17,10 +18,12 @@ import {
   FormsModule,
 } from '@angular/forms';
 import {
-  DbService,
-  Work,
-  WorkEstimation,
-} from '../../core/services/db.service';
+  Project,
+  ProjectEstimation,
+  ProjectService,
+} from '../../core/services/project.service';
+import { MaterialService } from '../../core/services/material.service';
+import { DirectoryService } from '../../core/services/directory.service';
 
 import { NzDrawerModule } from 'ng-zorro-antd/drawer';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -50,17 +53,21 @@ import { CdkStepperModule } from '@angular/cdk/stepper';
   ],
   templateUrl: './works.component.html',
 })
-export class WorksComponent implements OnInit {
+export class WorksComponent implements OnInit, OnDestroy {
   @ViewChild('stepper') stepper!: StepperComponent;
+  private materialDefaultsSub!: Subscription;
+  private directorySub!: Subscription;
+  contractorOptions: string[] = [];
+  contractorRates: Record<string, number> = {};
 
   isSaving = false;
-  works: Work[] = [];
+  works: Project[] = [];
 
   // Drawer & Stepper State
   isDrawerVisible = false;
   // activeTab = 0;
   currentWorkId: number | null = null;
-  currentEstimations: WorkEstimation[] = [];
+  currentEstimations: ProjectEstimation[] = [];
 
   // Forms
   workForm!: FormGroup;
@@ -80,13 +87,31 @@ export class WorksComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private db: DbService,
+    private projectService: ProjectService,
+    private materialService: MaterialService,
+    private directoryService: DirectoryService,
     private cdr: ChangeDetectorRef,
   ) {}
 
   async ngOnInit() {
     this.initForms();
-    await this.loadMasterData();
+    this.materialDefaultsSub =
+      this.materialService.materialDefaultsChanged$.subscribe(() =>
+        this.loadMasterData(),
+      );
+    this.directorySub = this.directoryService.entriesChanged$.subscribe(
+      async ({ kind, previousName, name }) => {
+        if (kind !== 'contractors') return;
+        if (previousName && name) {
+          if (this.workForm.get('contractorName')?.value === previousName) {
+            this.workForm.patchValue({ contractorName: name }, { emitEvent: false });
+          }
+          await this.loadWorks();
+        }
+        await this.loadContractorDefaults();
+      },
+    );
+    await Promise.all([this.loadMasterData(), this.loadContractorDefaults()]);
     await this.loadWorks();
   }
 
@@ -103,12 +128,17 @@ export class WorksComponent implements OnInit {
 
     // Auto-calculate Total Service Charge
     this.workForm.valueChanges.subscribe((val) => {
-      if (val.serviceRate && val.serviceQty) {
-        this.workForm.patchValue(
-          { totalServiceCharge: val.serviceRate * val.serviceQty },
-          { emitEvent: false },
-        );
-      }
+      this.workForm.patchValue(
+        { totalServiceCharge: (val.serviceRate || 0) * (val.serviceQty || 0) },
+        { emitEvent: false },
+      );
+    });
+
+    this.workForm.get('contractorName')?.valueChanges.subscribe(() => {
+      this.applyContractorRate();
+    });
+    this.workForm.get('serviceType')?.valueChanges.subscribe(() => {
+      this.applyContractorRate();
     });
 
     this.estForm = this.fb.group({
@@ -138,18 +168,46 @@ export class WorksComponent implements OnInit {
   }
 
   async loadWorks() {
-    this.works = await this.db.getWorks();
+    this.works = await this.projectService.getProjects();
     this.cdr.detectChanges();
   }
 
   async loadMasterData() {
-    this.dynamicPriceDefaults = await this.db.getMaterialDefaults();
+    this.dynamicPriceDefaults =
+      await this.materialService.getMaterialDefaults();
     this.dynamicMaterialOptions = Object.keys(this.dynamicPriceDefaults);
     this.cdr.detectChanges();
   }
 
+  async loadContractorDefaults() {
+    try {
+      const contractors = await this.directoryService.getEntries('contractors');
+      this.contractorOptions = contractors.map((contractor) => contractor.name);
+      this.contractorRates = Object.fromEntries(
+        contractors.map((contractor) => [contractor.name, contractor.defaultRate]),
+      );
+      this.cdr.markForCheck();
+    } catch (error) {
+      console.error('Failed to load contractors', error);
+      alert('Failed to load contractors. Please reopen Projects to retry.');
+    }
+  }
+
+  private applyContractorRate() {
+    const name = this.workForm.get('contractorName')?.value;
+    const rate = this.contractorRates[name];
+    if (this.workForm.get('serviceType')?.value === 'Sq Ft' && rate !== undefined) {
+      this.workForm.patchValue({ serviceRate: rate });
+    }
+  }
+
   openNewWork() {
-    this.workForm.reset();
+    this.workForm.reset({
+      serviceType: 'Sq Ft',
+      serviceRate: 0,
+      serviceQty: 1,
+      totalServiceCharge: 0,
+    });
     this.currentWorkId = null;
     this.currentEstimations = [];
     this.estForm.reset();
@@ -162,31 +220,26 @@ export class WorksComponent implements OnInit {
     if (this.workForm.invalid || this.isSaving) return;
     if (this.workForm.valid) {
       this.isSaving = true;
-      const val = this.workForm.getRawValue();
-      this.currentWorkId = await this.db.addWork(val);
+      try {
+        const val = this.workForm.getRawValue();
+        if (this.currentWorkId !== null) {
+          await this.projectService.updateProject({
+            ...val,
+            id: this.currentWorkId,
+          });
+        } else {
+          this.currentWorkId = await this.projectService.addProject(val);
+          this.workForm.patchValue({ id: this.currentWorkId });
+        }
 
-      if (this.currentWorkId) {
-        // UPDATE EXISTING
-        val.id = this.currentWorkId;
-        await this.db.updateWork(val);
-      } else {
-        // INSERT NEW
-        this.currentWorkId = await this.db.addWork(val);
-        this.workForm.patchValue({ id: this.currentWorkId });
+        await this.loadWorks();
+
+        // Move to Step 2: Estimations
+        this.stepper.selectStepByIndex(1);
+        this.cdr.detectChanges();
+      } finally {
+        this.isSaving = false;
       }
-
-      await this.loadWorks();
-
-      // If they updated the project they are currently viewing globally, broadcast the name change
-      if (this.db.activeWorkId$.value === val.id) {
-        this.db.worksListChanged$.next();
-      }
-
-      this.isSaving = false;
-
-      // Move to Step 2: Estimations
-      this.stepper.selectStepByIndex(1);
-      this.cdr.detectChanges();
     }
   }
   // 3. Math Helper
@@ -200,37 +253,40 @@ export class WorksComponent implements OnInit {
   async addEstimation() {
     if (this.estForm.valid && this.currentWorkId) {
       const val = this.estForm.getRawValue();
-      val.workId = this.currentWorkId;
-      val.totalCost = val.qty * val.unitPrice; // Bulletproof math enforcement
+      const estimation: ProjectEstimation = {
+        ...val,
+        projectId: this.currentWorkId,
+        totalCost: val.qty * val.unitPrice,
+      };
 
-      await this.db.addEstimation(val);
+      await this.projectService.addEstimation(estimation);
       this.estForm.reset();
 
-      this.currentEstimations = await this.db.getEstimationsForWork(
-        this.currentWorkId,
-      );
+      this.currentEstimations =
+        await this.projectService.getEstimationsForProject(this.currentWorkId);
       this.cdr.detectChanges();
     }
   }
 
   async removeEstimation(id: number) {
-    await this.db.deleteEstimation(id);
+    await this.projectService.deleteEstimation(id);
     if (this.currentWorkId) {
-      this.currentEstimations = await this.db.getEstimationsForWork(
-        this.currentWorkId,
-      );
+      this.currentEstimations =
+        await this.projectService.getEstimationsForProject(this.currentWorkId);
       this.cdr.detectChanges();
     }
   }
 
   // 2. Add the Edit trigger
-  async editWork(work: Work) {
+  async editWork(work: Project) {
     this.workForm.reset();
-    this.workForm.patchValue(work);
-    this.currentWorkId = work.id!;
+    this.workForm.patchValue(work, { emitEvent: false });
+    if (work.id === undefined) return;
+    this.currentWorkId = work.id;
 
     // Fetch the estimations for this project
-    this.currentEstimations = await this.db.getEstimationsForWork(work.id!);
+    this.currentEstimations =
+      await this.projectService.getEstimationsForProject(work.id);
 
     // this.activeTab = 0; // Start at Step 1
     this.isDrawerVisible = true;
@@ -241,11 +297,11 @@ export class WorksComponent implements OnInit {
   async deleteWork(id: number) {
     if (!id) return; // Guard clause
 
-    await this.db.deleteWork(id);
+    await this.projectService.deleteProject(id);
 
     // If the user just deleted the project they are currently looking at globally, reset the header
-    if (this.db.activeWorkId$.value === id) {
-      this.db.activeWorkId$.next(null);
+    if (this.projectService.activeProjectId$.value === id) {
+      this.projectService.activeProjectId$.next(null);
     }
 
     await this.loadWorks(); // Refresh the UI list
@@ -264,12 +320,15 @@ export class WorksComponent implements OnInit {
   async saveUpdatedPrices() {
     // Save all existing modified prices
     for (const mat of this.dynamicMaterialOptions) {
-      await this.db.saveMaterialDefault(mat, this.dynamicPriceDefaults[mat]);
+      await this.materialService.saveMaterialDefault(
+        mat,
+        this.dynamicPriceDefaults[mat],
+      );
     }
 
     // Save new material if typed in
     if (this.newMaterialName && this.newMaterialPrice > 0) {
-      await this.db.saveMaterialDefault(
+      await this.materialService.saveMaterialDefault(
         this.newMaterialName,
         this.newMaterialPrice,
       );
@@ -290,5 +349,10 @@ export class WorksComponent implements OnInit {
       (sum, est) => sum + (est.totalCost || 0),
       0,
     );
+  }
+
+  ngOnDestroy() {
+    this.directorySub?.unsubscribe();
+    this.materialDefaultsSub?.unsubscribe();
   }
 }

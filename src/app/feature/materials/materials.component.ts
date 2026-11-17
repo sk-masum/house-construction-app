@@ -1,4 +1,12 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  ChangeDetectorRef,
+  inject,
+} from '@angular/core';
+import { ProjectService } from '../../core/services/project.service';
+import { DirectoryService } from '../../core/services/directory.service';
 import { MaterialCardComponent } from './components/material-card/material-card.component';
 import { CommonModule } from '@angular/common';
 import {
@@ -9,10 +17,10 @@ import {
 } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import {
-  DbService,
   Material,
   MaterialFilters,
-} from '../../core/services/db.service';
+  MaterialService,
+} from '../../core/services/material.service';
 import {
   TabSwitcherComponent,
   TabConfig,
@@ -31,6 +39,24 @@ import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { SelectComponent } from '../../shared/components/select/select.component';
 import { DatepickerComponent } from '../../shared/components/datepicker/datepicker.component';
 import { TextfieldComponent } from '../../shared/components/textfield/textfield.component';
+import {
+  Transaction,
+  TransactionService,
+} from '../../core/services/transaction.service';
+
+interface MaterialSummary {
+  name: string;
+  count: number;
+  totalPrice: number;
+}
+
+interface BuilderSummary {
+  name: string;
+  count: number;
+  totalPrice: number;
+  totalPaid: number;
+  dueAmount: number;
+}
 
 @Component({
   selector: 'app-materials',
@@ -55,21 +81,21 @@ import { TextfieldComponent } from '../../shared/components/textfield/textfield.
   templateUrl: './materials.component.html',
 })
 export class MaterialsComponent implements OnInit, OnDestroy {
+  private projectService = inject(ProjectService);
+  private materialService = inject(MaterialService);
+  private transactionService = inject(TransactionService);
+  private directoryService = inject(DirectoryService);
   private workSub!: Subscription;
-  readonly BUILDER_OPTIONS = ['SS', 'Nice', 'KGN'];
+  private materialDefaultsSub!: Subscription;
+  private directorySub!: Subscription;
+  builderOptions: string[] = [];
+  deliveryDefaults: Record<string, number> = {};
 
   readonly tabs: TabConfig[] = [
     { label: 'By Date', value: 'date' },
     { label: 'By Material', value: 'material' },
     { label: 'By Builder', value: 'builder' },
   ];
-
-  readonly DELIVERY_DEFAULTS: Record<string, number> = {
-    SS: 160,
-    Nice: 150,
-    KGN: 300,
-    Sukhchand: 0,
-  };
 
   dateGroups: any[] = [];
   isLoading = true;
@@ -89,8 +115,8 @@ export class MaterialsComponent implements OnInit, OnDestroy {
   sortOrder: 'desc' | 'asc' = 'desc';
 
   // Aggregated Groups
-  materialGroups: any[] = [];
-  builderGroups: any[] = [];
+  materialGroups: MaterialSummary[] = [];
+  builderGroups: BuilderSummary[] = [];
 
   // Drill-Down Detail State
   isDetailVisible = false;
@@ -104,14 +130,36 @@ export class MaterialsComponent implements OnInit, OnDestroy {
 
   constructor(
     private fb: FormBuilder,
-    private db: DbService,
     private cdr: ChangeDetectorRef,
   ) {}
 
   async ngOnInit() {
     this.initForm();
-    await this.loadMasterData();
-    this.workSub = this.db.activeWorkId$.subscribe(async () => {
+    this.materialDefaultsSub = this.materialService.materialDefaultsChanged$.subscribe(
+      () => this.loadMasterData(),
+    );
+    this.directorySub = this.directoryService.entriesChanged$.subscribe(
+      async ({ kind, previousName, name }) => {
+        if (kind !== 'builders') return;
+        if (previousName && name) {
+          if (this.materialForm.get('builderName')?.value === previousName) {
+            this.materialForm.patchValue({ builderName: name }, { emitEvent: false });
+          }
+          const builders: string[] = this.filterForm.get('builders')?.value || [];
+          this.filterForm.patchValue({
+            builders: builders.map((builder) => builder === previousName ? name : builder),
+          }, { emitEvent: false });
+          if (this.activeView === 'builder' && this.detailTitle === previousName) {
+            this.detailTitle = name;
+          }
+          await this.loadMaterials();
+          if (this.isDetailVisible) await this.updateDetailView();
+        }
+        await this.loadBuilderDefaults();
+      },
+    );
+    await Promise.all([this.loadMasterData(), this.loadBuilderDefaults()]);
+    this.workSub = this.projectService.activeProjectId$.subscribe(async () => {
       await this.loadMaterials();
     });
 
@@ -121,9 +169,23 @@ export class MaterialsComponent implements OnInit, OnDestroy {
   }
 
   async loadMasterData() {
-    this.dynamicPriceDefaults = await this.db.getMaterialDefaults();
+    this.dynamicPriceDefaults = await this.materialService.getMaterialDefaults();
     this.dynamicMaterialOptions = Object.keys(this.dynamicPriceDefaults);
     this.cdr.detectChanges();
+  }
+
+  async loadBuilderDefaults() {
+    try {
+      const builders = await this.directoryService.getEntries('builders');
+      this.builderOptions = builders.map((builder) => builder.name);
+      this.deliveryDefaults = Object.fromEntries(
+        builders.map((builder) => [builder.name, builder.defaultRate]),
+      );
+      this.cdr.markForCheck();
+    } catch (error) {
+      console.error('Failed to load builders', error);
+      alert('Failed to load builders. Please reopen Materials to retry.');
+    }
   }
 
   initForm(): void {
@@ -156,10 +218,10 @@ export class MaterialsComponent implements OnInit, OnDestroy {
 
     // Auto-fill delivery charge based on selected builder
     this.materialForm.get('builderName')?.valueChanges.subscribe((builder) => {
-      if (builder && this.DELIVERY_DEFAULTS[builder] !== undefined) {
+      if (builder && this.deliveryDefaults[builder] !== undefined) {
         // Update the charge (which automatically triggers calculateTotal via the subscription above)
         this.materialForm.patchValue(
-          { deliveryCharge: this.DELIVERY_DEFAULTS[builder] },
+          { deliveryCharge: this.deliveryDefaults[builder] },
           { emitEvent: true }, // Ensure calculateTotal fires
         );
       }
@@ -175,13 +237,7 @@ export class MaterialsComponent implements OnInit, OnDestroy {
       }
     });
 
-    this.formSub = this.materialForm.valueChanges.subscribe((values) => {
-      const qty = values.qty || 0;
-      const price = values.unitPrice || 0;
-      this.materialForm
-        .get('totalPrice')
-        ?.setValue(qty * price, { emitEvent: false });
-    });
+    this.formSub = this.materialForm.valueChanges.subscribe(() => this.calculateTotal());
   }
 
   calculateTotal(): void {
@@ -222,21 +278,73 @@ export class MaterialsComponent implements OnInit, OnDestroy {
       sortOrder: this.sortOrder,
     };
 
-    // Execute all 3 SQL queries concurrently
-    const [display, builderAgg, materialAgg] = await Promise.all([
-      this.db.getFilteredMaterials(this.currentSqlFilters),
-      this.db.getBuilderSummaries(this.currentSqlFilters),
-      this.db.getMaterialSummaries(this.currentSqlFilters),
-    ]);
+    try {
+      const [display, transactions] = await Promise.all([
+        this.materialService.getFilteredMaterials(this.currentSqlFilters),
+        this.transactionService.getFilteredTransactions({}),
+      ]);
 
-    this.displayMaterials = display;
-    this.builderGroups = builderAgg;
-    this.materialGroups = materialAgg;
+      this.displayMaterials = display;
+      this.builderGroups = this.buildBuilderSummaries(display, transactions);
+      this.materialGroups = this.buildMaterialSummaries(display);
+      this.buildDateGroups();
+    } finally {
+      this.isLoading = false;
+      this.cdr.detectChanges();
+    }
+  }
 
-    this.buildDateGroups(); // (We still group dates via JS using displayMaterials to preserve the full item cards)
+  private buildMaterialSummaries(materials: Material[]): MaterialSummary[] {
+    const groups = new Map<string, MaterialSummary>();
+    for (const material of materials) {
+      const group = groups.get(material.name) ?? {
+        name: material.name,
+        count: 0,
+        totalPrice: 0,
+      };
+      group.count += 1;
+      group.totalPrice += material.totalPrice || 0;
+      groups.set(material.name, group);
+    }
+    return Array.from(groups.values()).sort(
+      (a, b) => b.totalPrice - a.totalPrice,
+    );
+  }
 
-    this.isLoading = false;
-    this.cdr.detectChanges();
+  private buildBuilderSummaries(
+    materials: Material[],
+    transactions: Transaction[],
+  ): BuilderSummary[] {
+    const paymentsByBuilder = new Map<string, number>();
+    for (const transaction of transactions) {
+      paymentsByBuilder.set(
+        transaction.receiver,
+        (paymentsByBuilder.get(transaction.receiver) ?? 0) +
+          (transaction.amount || 0),
+      );
+    }
+
+    const groups = new Map<string, BuilderSummary>();
+    for (const material of materials) {
+      const group = groups.get(material.builderName) ?? {
+        name: material.builderName,
+        count: 0,
+        totalPrice: 0,
+        totalPaid: 0,
+        dueAmount: 0,
+      };
+      group.count += 1;
+      group.totalPrice += material.totalPrice || 0;
+      groups.set(material.builderName, group);
+    }
+
+    for (const group of groups.values()) {
+      group.totalPaid = paymentsByBuilder.get(group.name) ?? 0;
+      group.dueAmount = group.totalPrice - group.totalPaid;
+    }
+    return Array.from(groups.values()).sort(
+      (a, b) => b.totalPrice - a.totalPrice,
+    );
   }
 
   buildDateGroups(): void {
@@ -280,8 +388,8 @@ export class MaterialsComponent implements OnInit, OnDestroy {
     if (type === 'builder') drillDownFilters.builders = [title];
     if (type === 'material') drillDownFilters.materials = [title];
 
-    // Query SQLite for the exact records
-    this.detailItems = await this.db.getFilteredMaterials(drillDownFilters);
+    this.detailItems =
+      await this.materialService.getFilteredMaterials(drillDownFilters);
 
     this.processDetailGroups(); // Runs your existing invoice-style grouping
     this.cdr.detectChanges();
@@ -294,10 +402,13 @@ export class MaterialsComponent implements OnInit, OnDestroy {
   // --- Form CRUD ---
   openDrawer(material?: Material): void {
     if (material) {
-      this.materialForm.patchValue({
-        ...material,
-        deliveryDate: new Date(material.deliveryDate),
-      });
+      this.materialForm.patchValue(
+        {
+          ...material,
+          deliveryDate: new Date(material.deliveryDate),
+        },
+        { emitEvent: false },
+      );
     } else {
       this.materialForm.reset({
         qty: 1,
@@ -324,7 +435,7 @@ export class MaterialsComponent implements OnInit, OnDestroy {
       const materialToSave = {
         ...formValue,
         totalPrice: qty * price + delivery,
-        workId: this.db.activeWorkId$.value || null, // Safely inject the context
+        projectId: this.projectService.activeProjectId$.value || null, // Safely inject the context
       };
 
       // 2. Format Date
@@ -332,12 +443,12 @@ export class MaterialsComponent implements OnInit, OnDestroy {
         materialToSave.deliveryDate = new Date(materialToSave.deliveryDate);
       }
 
-      // 3. Route to SQLite
+      // Save through the Turso-backed material service.
       if (materialToSave.id) {
-        await this.db.updateMaterial(materialToSave);
+        await this.materialService.updateMaterial(materialToSave);
       } else {
         delete materialToSave.id;
-        await this.db.addMaterial(materialToSave);
+        await this.materialService.addMaterial(materialToSave);
       }
 
       this.closeDrawer();
@@ -351,7 +462,7 @@ export class MaterialsComponent implements OnInit, OnDestroy {
 
   async deleteMaterial(id: number) {
     if (id) {
-      await this.db.deleteMaterial(id);
+      await this.materialService.deleteMaterial(id);
       await this.loadMaterials();
 
       if (this.isDetailVisible) {
@@ -374,8 +485,8 @@ export class MaterialsComponent implements OnInit, OnDestroy {
       drillDownFilters.materials = [this.detailTitle];
     }
 
-    // Re-fetch the exact records from SQLite
-    this.detailItems = await this.db.getFilteredMaterials(drillDownFilters);
+    this.detailItems =
+      await this.materialService.getFilteredMaterials(drillDownFilters);
 
     // Re-run the grouping for the UI
     this.processDetailGroups();
@@ -428,12 +539,14 @@ export class MaterialsComponent implements OnInit, OnDestroy {
 
   async shareBuilderLedger(builderName: string) {
     // 1. Fetch both Materials and Ledger Payments for this specific builder
-    const materials = await this.db.getFilteredMaterials({
-      builders: [builderName],
-    });
-    const transactions = await this.db.getFilteredTransactions({
-      receivers: [builderName],
-    });
+    const [materials, transactions] = await Promise.all([
+      this.materialService.getFilteredMaterials({
+        builders: [builderName],
+      }),
+      this.transactionService.getFilteredTransactions({
+        receivers: [builderName],
+      }),
+    ]);
 
     // 2. Calculate Totals
     const totalBilled = materials.reduce(
@@ -525,6 +638,8 @@ export class MaterialsComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.directorySub?.unsubscribe();
+    this.materialDefaultsSub?.unsubscribe();
     if (this.formSub) this.formSub.unsubscribe();
     if (this.filterSub) this.filterSub.unsubscribe();
     if (this.workSub) this.workSub.unsubscribe();

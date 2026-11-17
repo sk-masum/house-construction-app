@@ -174,24 +174,13 @@
           <nz-form-item class="mb-0">
             <nz-form-label nzRequired>Receiver (To)</nz-form-label>
             <nz-form-control nzErrorTip="Required">
-              <!-- <select
-                formControlName="receiver"
-                class="w-full px-3 py-2 bg-neutral-800 border border-neutral-700 text-white rounded text-base"
-                style="
-                  appearance: none;
-                  -webkit-appearance: none;
-                  -moz-appearance: none;
-                "
-              >
-                <option value="">Select receiver</option>
-                @for (rec of RECEIVER_OPTIONS; track rec) {
-                  <option [value]="rec">{{ rec }}</option>
-                }
-              </select> -->
               <app-select
                 formControlName="receiver"
-                [options]="RECEIVER_OPTIONS"
-                placeholder="Select receiver"
+                [options]="receiverOptions"
+                valueKey="name"
+                labelKey="name"
+                groupKey="group"
+                placeholder="Select builder or contractor"
               ></app-select>
             </nz-form-control>
           </nz-form-item>

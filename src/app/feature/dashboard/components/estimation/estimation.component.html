@@ -1,0 +1,113 @@
+<!-- SECTION 1: ESTIMATION (Planned Budget) -->
+<div class="mb-8">
+  <h2
+    class="text-sm font-bold text-emerald-400 mb-4 uppercase tracking-wider flex items-center gap-2"
+  >
+    <span nz-icon nzType="file-text" class="text-base"></span>
+    Estimation (Planned Budget)
+  </h2>
+
+  <div class="grid grid-cols-2 gap-4 mb-4">
+    <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
+      <p
+        class="text-[10px] text-neutral-500 uppercase tracking-wider m-0 mb-1"
+      >
+        Estimated Materials
+      </p>
+      <p class="text-lg font-semibold text-emerald-400 m-0">
+        ₹{{ totalEstimatedMaterialCost | number: "1.0-0" }}
+      </p>
+      <p class="text-[9px] text-neutral-500 m-0 mt-1">Budgeted amount</p>
+    </div>
+    <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
+      <p
+        class="text-[10px] text-neutral-500 uppercase tracking-wider m-0 mb-1"
+      >
+        Labor / Contracts
+      </p>
+      <p class="text-lg font-semibold text-emerald-400 m-0">
+        ₹{{ totalServiceCharge | number: "1.0-0" }}
+      </p>
+      @if (activeProject) {
+        <p class="text-[9px] text-neutral-500 m-0 mt-1">
+          {{ activeProject.serviceQty }} {{ activeProject.serviceType }} &#64;
+          ₹{{ activeProject.serviceRate }}
+        </p>
+      }
+    </div>
+  </div>
+
+  <!-- Estimated Summary Card -->
+  <div class="bg-neutral-900 border border-emerald-600/30 rounded-xl p-4">
+    <div class="flex justify-between items-center">
+      <div>
+        <p class="text-xs text-neutral-400 uppercase tracking-wider m-0 mb-1">
+          Total Estimated Project Cost
+        </p>
+        <p class="text-2xl font-bold text-emerald-400 m-0">
+          ₹{{
+            totalEstimatedMaterialCost + totalServiceCharge | number: "1.0-0"
+          }}
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Material Budget Health (Estimation) -->
+  @if (activeProject && progressData.length > 0) {
+    <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4 mt-4">
+      <h3
+        class="text-xs font-semibold text-neutral-300 mb-4 uppercase tracking-wider"
+      >
+        Material Budget vs Actual Purchase
+      </h3>
+      <div class="flex flex-col gap-4">
+        @for (item of progressData; track item.materialName) {
+          <div>
+            <div class="flex justify-between items-end mb-1">
+              <h4 class="text-white font-medium text-sm m-0">
+                {{ item.materialName }}
+              </h4>
+              <div class="text-xs text-neutral-400">
+                <span
+                  [ngClass]="
+                    item.actualQty > item.estimatedQty
+                      ? 'text-red-400 font-bold'
+                      : 'text-emerald-400'
+                  "
+                  >{{ item.actualQty }}</span
+                >
+                / {{ item.estimatedQty || 0 }} {{ item.unit }}
+              </div>
+            </div>
+
+            <nz-progress
+              [nzPercent]="item.percent > 100 ? 100 : item.percent"
+              [nzShowInfo]="false"
+              [nzStatus]="
+                item.actualQty > item.estimatedQty ? 'exception' : 'active'
+              "
+              [nzStrokeColor]="
+                item.actualQty > item.estimatedQty ? '#f87171' : '#10b981'
+              "
+              nzSize="small"
+              class="block"
+            >
+            </nz-progress>
+
+            @if (item.actualQty > item.estimatedQty) {
+              <p class="text-[10px] text-red-400 mt-1 m-0">
+                <span nz-icon nzType="warning"></span> Over budget by
+                {{ item.actualQty - item.estimatedQty }} {{ item.unit }}
+              </p>
+            } @else if (item.estimatedQty === 0) {
+              <p class="text-[10px] text-orange-400 mt-1 m-0">
+                <span nz-icon nzType="info-circle"></span> Unplanned material
+              </p>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

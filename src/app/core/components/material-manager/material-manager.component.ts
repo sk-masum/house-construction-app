@@ -1,8 +1,8 @@
 import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
 import { NzDrawerModule } from 'ng-zorro-antd/drawer';
 import { FormsModule } from '@angular/forms';
-import { TextfieldComponent } from '../../../../shared/components/textfield/textfield.component';
-import { DbService } from '../../../../core/services/db.service';
+import { TextfieldComponent } from '../../../shared/components/textfield/textfield.component';
+import { MaterialService } from '../../services/material.service';
 
 @Component({
   selector: 'app-material-manager',
@@ -12,7 +12,7 @@ import { DbService } from '../../../../core/services/db.service';
   styleUrl: './material-manager.component.scss',
 })
 export class MaterialManagerComponent {
-  private db = inject(DbService);
+  private materialService = inject(MaterialService);
 
   @Input() isPriceDrawerVisible = false;
   @Input() dynamicMaterialOptions: string[] = [];
@@ -21,21 +21,26 @@ export class MaterialManagerComponent {
   newMaterialPrice = 0;
 
   @Output() loadMasterData = new EventEmitter<void>();
+  @Output() isPriceDrawerVisibleChange = new EventEmitter<boolean>();
 
   closePriceManager() {
     this.isPriceDrawerVisible = false;
+    this.isPriceDrawerVisibleChange.emit(false);
     this.newMaterialName = '';
   }
 
   async saveUpdatedPrices() {
     // Save all existing modified prices
     for (const mat of this.dynamicMaterialOptions) {
-      await this.db.saveMaterialDefault(mat, this.dynamicPriceDefaults[mat]);
+      await this.materialService.saveMaterialDefault(
+        mat,
+        this.dynamicPriceDefaults[mat],
+      );
     }
 
     // Save new material if typed in
     if (this.newMaterialName && this.newMaterialPrice > 0) {
-      await this.db.saveMaterialDefault(
+      await this.materialService.saveMaterialDefault(
         this.newMaterialName,
         this.newMaterialPrice,
       );

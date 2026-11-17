@@ -1,0 +1,83 @@
+<!-- SECTION 3: BREAKDOWN CHARTS -->
+<div class="mb-8">
+  <h2
+    class="text-sm font-bold text-purple-400 mb-4 uppercase tracking-wider flex items-center gap-2"
+  >
+    <span nz-icon nzType="bar-chart" class="text-base"></span>
+    Payment Breakdown
+  </h2>
+
+  <!-- Dual Chart Container -->
+  <div class="grid grid-cols-2 gap-4">
+    <!-- Contractor (Labor) Card -->
+    <div
+      class="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 flex flex-col items-center shadow-lg"
+    >
+      <h3
+        class="text-xs font-medium text-neutral-400 mb-3 uppercase tracking-wider"
+      >
+        Contractor
+      </h3>
+      <div class="w-24 h-24 mb-4">
+        <app-circle-chart
+          [totalCost]="contractorTotal"
+          [totalPaid]="contractorPaid"
+          colorClass="text-purple-500"
+        >
+        </app-circle-chart>
+      </div>
+      <div class="w-full text-center space-y-1">
+        <p class="text-sm text-purple-400 font-semibold">
+          ₹{{ contractorPaid | number }} Paid
+        </p>
+        <p class="text-xs text-neutral-500">
+          of ₹{{ contractorTotal | number }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Materials Card -->
+    <div
+      class="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 flex flex-col items-center shadow-lg"
+    >
+      <h3
+        class="text-xs font-medium text-neutral-400 mb-3 uppercase tracking-wider"
+      >
+        Materials
+      </h3>
+      <div class="w-24 h-24 mb-4">
+        <app-circle-chart
+          [totalCost]="materialTotal"
+          [totalPaid]="materialPaid"
+          colorClass="text-blue-500"
+        >
+        </app-circle-chart>
+      </div>
+      <div class="w-full text-center space-y-1">
+        <p class="text-sm text-blue-400 font-semibold">
+          ₹{{ materialPaid | number }} Paid
+        </p>
+        <p class="text-xs text-neutral-500">
+          of ₹{{ materialTotal | number }}
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Grand Total Summary -->
+  <div
+    class="bg-neutral-900 border border-neutral-800 rounded-2xl p-4 mt-4 flex justify-between items-center shadow-lg"
+  >
+    <div>
+      <p class="text-xs text-neutral-400 uppercase tracking-wider">
+        Overall Project Due
+      </p>
+      <p class="text-xl font-bold text-red-400">
+        ₹{{
+          contractorTotal + materialTotal - (contractorPaid + materialPaid)
+            | number
+        }}
+      </p>
+    </div>
+  </div>
+</div>

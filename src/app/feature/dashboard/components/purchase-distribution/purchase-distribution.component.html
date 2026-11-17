@@ -1,0 +1,29 @@
+<div class="space-y-4">
+  <!-- Spend Analytics Chart -->
+  <div class="surface-card p-5 rounded-xl">
+    <h3
+      class="text-xs font-semibold text-neutral-300 mb-4 uppercase tracking-wider"
+    >
+      Current Purchase Distribution
+    </h3>
+    @if (pieChartData.labels && pieChartData.labels.length > 0) {
+      <div class="h-52 relative">
+        <canvas
+          baseChart
+          [data]="pieChartData"
+          [options]="pieChartOptions"
+          [type]="'doughnut'"
+        ></canvas>
+      </div>
+    } @else {
+      <div class="text-center text-neutral-500 py-6">
+        <span
+          nz-icon
+          nzType="pie-chart"
+          class="text-3xl mb-2 opacity-50"
+        ></span>
+        <p class="text-xs m-0">No materials logged yet.</p>
+      </div>
+    }
+  </div>
+</div>

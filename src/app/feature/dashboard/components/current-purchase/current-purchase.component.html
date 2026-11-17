@@ -1,0 +1,69 @@
+<!-- SECTION 2: CURRENT PURCHASE (Actual Spend) -->
+<div class="mb-8">
+  <h2
+    class="text-sm font-bold text-blue-400 mb-4 uppercase tracking-wider flex items-center gap-2"
+  >
+    <span nz-icon nzType="shopping-cart" class="text-base"></span>
+    Current Purchase (Actual Spend)
+  </h2>
+
+  <div class="grid grid-cols-2 gap-4 mb-4">
+    <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
+      <p
+        class="text-[10px] text-neutral-500 uppercase tracking-wider m-0 mb-1"
+      >
+        Total Materials Purchased
+      </p>
+      <p class="text-lg font-semibold text-blue-400 m-0">
+        ₹{{ totalMaterialCost | number: "1.0-0" }}
+      </p>
+      @if (activeProject && totalEstimatedMaterialCost > 0) {
+        <p
+          class="text-[9px] mt-1 m-0 font-medium"
+          [ngClass]="
+            totalMaterialCost > totalEstimatedMaterialCost
+              ? 'text-red-400'
+              : 'text-emerald-400'
+          "
+        >
+          @if (totalMaterialCost > totalEstimatedMaterialCost) {
+            <span nz-icon nzType="arrow-up" class="text-[8px] mr-1"></span>
+            Exceeded by ₹{{
+              totalMaterialCost - totalEstimatedMaterialCost | number: "1.0-0"
+            }}
+          } @else {
+            <span nz-icon nzType="arrow-down" class="text-[8px] mr-1"></span>
+            Remaining: ₹{{
+              totalEstimatedMaterialCost - totalMaterialCost | number: "1.0-0"
+            }}
+          }
+        </p>
+      }
+    </div>
+    <div class="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
+      <p
+        class="text-[10px] text-neutral-500 uppercase tracking-wider m-0 mb-1"
+      >
+        Total Labor Paid
+      </p>
+      <p class="text-lg font-semibold text-blue-400 m-0">
+        ₹{{ contractorPaid | number: "1.0-0" }}
+      </p>
+      <p class="text-[9px] text-neutral-500 m-0 mt-1">Paid to contractors</p>
+    </div>
+  </div>
+
+  <!-- Current Spend Summary Card -->
+  <div class="bg-neutral-900 border border-blue-600/30 rounded-xl p-4">
+    <div class="flex justify-between items-center">
+      <div>
+        <p class="text-xs text-neutral-400 uppercase tracking-wider m-0 mb-1">
+          Total Amount Spent
+        </p>
+        <p class="text-2xl font-bold text-blue-400 m-0">
+          ₹{{ totalTransactions | number: "1.0-0" }}
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

@@ -4,6 +4,11 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 
+interface SelectOptionGroup {
+  label: string;
+  options: unknown[];
+}
+
 @Component({
   selector: 'app-select',
   standalone: true,
@@ -21,6 +26,7 @@ export class SelectComponent implements ControlValueAccessor {
   @Input() options: any[] = [];
   @Input() valueKey?: string; // Used if options are objects (e.g., 'id')
   @Input() labelKey?: string; // Used if options are objects (e.g., 'name')
+  @Input() groupKey?: string;
   @Input() placeholder = 'Select...';
   @Input() nullLabel?: string; // e.g., 'All Site Works'
 
@@ -49,6 +55,22 @@ export class SelectComponent implements ControlValueAccessor {
 
   setDisabledState?(isDisabled: boolean): void {
     this.isDisabled = isDisabled;
+  }
+
+  get optionGroups(): SelectOptionGroup[] {
+    if (!this.groupKey) return [{ label: '', options: this.options }];
+
+    const groups = new Map<string, unknown[]>();
+    for (const option of this.options) {
+      const label = String(option?.[this.groupKey] ?? '');
+      const options = groups.get(label);
+      if (options) {
+        options.push(option);
+      } else {
+        groups.set(label, [option]);
+      }
+    }
+    return Array.from(groups, ([label, options]) => ({ label, options }));
   }
 
   get displayValue(): string {
