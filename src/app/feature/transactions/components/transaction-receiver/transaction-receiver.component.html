@@ -1,0 +1,30 @@
+<div class="flex flex-col gap-3">
+  @if (receiverGroups.length === 0) {
+    <div class="text-center text-neutral-500 mt-10">
+      <p>No receivers found.</p>
+    </div>
+  }
+  @for (group of receiverGroups; track group.name) {
+    <div
+      (click)="openDetailEvent.emit({ name: group.name, type: 'receiver' })"
+      class="surface-card surface-card-interactive p-4 rounded-xl flex justify-between items-center transition-colors cursor-pointer"
+    >
+      <div>
+        <h3 class="text-lg font-bold text-blue-400 m-0">
+          {{ group.name }}
+        </h3>
+        <p class="text-xs text-neutral-400 m-0">
+          {{ group.count }} Transactions
+        </p>
+      </div>
+      <div class="text-right">
+        <p class="text-[10px] text-neutral-500 uppercase m-0 mb-1">
+          Total Paid
+        </p>
+        <p class="text-lg font-semibold text-white m-0">
+          ₹{{ group.totalAmount | number: "1.0-0" }}
+        </p>
+      </div>
+    </div>
+  }
+</div>

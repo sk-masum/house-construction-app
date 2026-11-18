@@ -1,0 +1,69 @@
+<form
+  nz-form
+  [formGroup]="transactionForm"
+  (ngSubmit)="submitEvent.emit()"
+  nzLayout="vertical"
+>
+  <input type="hidden" formControlName="id" />
+
+  <nz-form-item class="mb-4">
+    <nz-form-label nzRequired>Amount (₹)</nz-form-label>
+    <nz-form-control nzErrorTip="Please enter a valid amount">
+      <input
+        type="number"
+        formControlName="amount"
+        min="1"
+        placeholder="Enter amount"
+        class="w-full px-3 py-2 bg-neutral-800 border border-neutral-700 text-white rounded text-base"
+        style="
+          appearance: none;
+          -webkit-appearance: none;
+          -moz-appearance: textfield;
+        "
+      />
+    </nz-form-control>
+  </nz-form-item>
+
+  <div class="grid grid-cols-2 gap-4 mb-4">
+    <nz-form-item class="mb-0">
+      <nz-form-label nzRequired>Provider (From)</nz-form-label>
+      <nz-form-control nzErrorTip="Required">
+        <input
+          type="text"
+          formControlName="provider"
+          placeholder="e.g., Bank"
+          class="w-full px-3 py-2 bg-neutral-800 border border-neutral-700 text-white rounded text-base"
+        />
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item class="mb-0">
+      <nz-form-label nzRequired>Receiver (To)</nz-form-label>
+      <nz-form-control nzErrorTip="Required">
+        <app-select
+          formControlName="receiver"
+          [options]="receiverOptions"
+          valueKey="name"
+          labelKey="name"
+          groupKey="group"
+          placeholder="Select builder or contractor"
+        ></app-select>
+      </nz-form-control>
+    </nz-form-item>
+  </div>
+
+  <nz-form-item class="mb-6">
+    <nz-form-label nzRequired>Date & Time</nz-form-label>
+    <nz-form-control>
+      <sk-datepicker
+        formControlName="dateTime"
+        placeholder="Select date and time"
+        mode="datetime"
+      ></sk-datepicker>
+    </nz-form-control>
+  </nz-form-item>
+
+  <button class="theme-action-button mt-4 sticky bottom-4 w-full">
+    Save Transaction
+  </button>
+</form>

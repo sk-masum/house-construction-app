@@ -1,12 +1,8 @@
 import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
-import { SelectComponent } from '../../shared/components/select/select.component';
+import { TransactionByDateComponent } from './components/transaction-by-date/transaction-by-date.component';
+import { TransactionReceiverComponent } from './components/transaction-receiver/transaction-receiver.component';
 import { CommonModule } from '@angular/common';
-import {
-  FormBuilder,
-  FormGroup,
-  Validators,
-  ReactiveFormsModule,
-} from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ProjectService } from '../../core/services/project.service';
 import { DirectoryService } from '../../core/services/directory.service';
 import {
@@ -20,72 +16,37 @@ import {
 } from '../../shared/components/tab-switcher.component';
 
 import { NzDrawerModule } from 'ng-zorro-antd/drawer';
-import { NzFormModule } from 'ng-zorro-antd/form';
-import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
-import { NzButtonModule } from 'ng-zorro-antd/button';
-import { NzIconModule } from 'ng-zorro-antd/icon';
-import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { Subscription } from 'rxjs';
-import { DatepickerComponent } from '../../shared/components/datepicker/datepicker.component';
-
-interface ReceiverSummary {
-  name: string;
-  count: number;
-  totalAmount: number;
-}
-
-interface ReceiverOption {
-  name: string;
-  group: 'Builders' | 'Contractors' | 'Previous Receivers';
-}
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
+import { TransactionCardComponent } from './components/transaction-card/transaction-card.component';
+import { TransactionFormComponent } from './components/transaction-form/transaction-form.component';
+import { ReceiverOption, ReceiverSummary } from './models/transaction.model';
 
 @Component({
   selector: 'app-transactions',
   standalone: true,
   imports: [
     CommonModule,
-    ReactiveFormsModule,
-    TabSwitcherComponent,
     NzDrawerModule,
-    NzFormModule,
-    NzInputModule,
-    NzInputNumberModule,
-    NzButtonModule,
-    NzIconModule,
-    NzPopconfirmModule,
-    SelectComponent,
-    DatepickerComponent,
+    TabSwitcherComponent,
+    PageHeaderComponent,
+    TransactionCardComponent,
+    TransactionReceiverComponent,
+    TransactionFormComponent,
+    TransactionByDateComponent,
   ],
   templateUrl: './transactions.component.html',
 })
 export class TransactionsComponent implements OnInit, OnDestroy {
   private projectSub!: Subscription;
   private directorySub!: Subscription;
-  private directoryReceivers: ReceiverOption[] = [];
-
-  get receiverOptions(): ReceiverOption[] {
-    const directoryNames = new Set(
-      this.directoryReceivers.map((receiver) => receiver.name),
-    );
-    const previousNames = Array.from(new Set(
-      this.displayTransactions.map((transaction) => transaction.receiver),
-    )).filter((name) => !directoryNames.has(name))
-      .sort((a, b) => a.localeCompare(b));
-    return [
-      ...this.directoryReceivers,
-      ...previousNames.map((name): ReceiverOption => ({
-        name,
-        group: 'Previous Receivers',
-      })),
-    ];
-  }
 
   readonly tabs: TabConfig[] = [
     { label: 'By Date', value: 'date' },
     { label: 'By Receiver', value: 'receiver' },
   ];
 
+  directoryReceivers: ReceiverOption[] = [];
   currentSqlFilters: TransactionFilters = {};
   isLoading = false;
 
@@ -122,10 +83,16 @@ export class TransactionsComponent implements OnInit, OnDestroy {
       async ({ previousName, name }) => {
         if (previousName && name) {
           if (this.transactionForm.get('receiver')?.value === previousName) {
-            this.transactionForm.patchValue({ receiver: name }, { emitEvent: false });
+            this.transactionForm.patchValue(
+              { receiver: name },
+              { emitEvent: false },
+            );
           }
           if (this.transactionForm.get('provider')?.value === previousName) {
-            this.transactionForm.patchValue({ provider: name }, { emitEvent: false });
+            this.transactionForm.patchValue(
+              { provider: name },
+              { emitEvent: false },
+            );
           }
           if (this.detailTitle === previousName) this.detailTitle = name;
           await this.loadTransactions();
@@ -134,9 +101,11 @@ export class TransactionsComponent implements OnInit, OnDestroy {
         await this.loadReceiverOptions();
       },
     );
-    this.projectSub = this.projectService.activeProjectId$.subscribe(async () => {
-      await this.loadTransactions();
-    });
+    this.projectSub = this.projectService.activeProjectId$.subscribe(
+      async () => {
+        await this.loadTransactions();
+      },
+    );
   }
 
   private async loadReceiverOptions() {
@@ -146,14 +115,18 @@ export class TransactionsComponent implements OnInit, OnDestroy {
         this.directoryService.getEntries('contractors'),
       ]);
       this.directoryReceivers = [
-        ...builders.map((builder): ReceiverOption => ({
-          name: builder.name,
-          group: 'Builders',
-        })),
-        ...contractors.map((contractor): ReceiverOption => ({
-          name: contractor.name,
-          group: 'Contractors',
-        })),
+        ...builders.map(
+          (builder): ReceiverOption => ({
+            name: builder.name,
+            group: 'Builders',
+          }),
+        ),
+        ...contractors.map(
+          (contractor): ReceiverOption => ({
+            name: contractor.name,
+            group: 'Contractors',
+          }),
+        ),
       ];
       this.cdr.markForCheck();
     } catch (error) {
@@ -250,7 +223,7 @@ export class TransactionsComponent implements OnInit, OnDestroy {
     this.setView(value as 'date' | 'receiver');
   }
 
-  async openDetail(title: string, type: 'receiver') {
+  async openDetail(title: string, type: string) {
     this.detailTitle = title;
     this.isDetailVisible = true;
     this.detailItems = []; // Clear for instant UI feedback

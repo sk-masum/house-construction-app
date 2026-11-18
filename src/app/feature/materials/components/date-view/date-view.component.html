@@ -1,0 +1,32 @@
+<div class="flex flex-col gap-8">
+  @if (dateGroups.length === 0) {
+    <div class="text-center text-neutral-500 mt-10">
+      <span nz-icon nzType="inbox" class="text-4xl mb-2"></span>
+      <p>No materials found.</p>
+    </div>
+  } @else {
+    @for (group of dateGroups; track group.dateKey) {
+      <div>
+        <app-date-header
+          [displayDate]="group.displayDate"
+          [numberOfPayments]="group.count"
+          [totalAmount]="group.totalPrice"
+          theme="emerald"
+        ></app-date-header>
+
+        <!-- Group Items (Cards) -->
+        <div class="flex flex-col gap-4">
+          @for (item of group.items; track item.id) {
+            <!-- Uses your existing Reusable Item Card template -->
+            <ng-container
+              *ngTemplateOutlet="
+                itemCardTemplate;
+                context: { $implicit: item, view: 'dateList' }
+              "
+            ></ng-container>
+          }
+        </div>
+      </div>
+    }
+  }
+</div>

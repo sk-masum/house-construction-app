@@ -1,19 +1,8 @@
 <div class="px-4 pt-4">
-  <!-- Page Title & Add Button -->
-  <div class="flex justify-between items-center mb-6">
-    <h1 class="text-lg font-semibold m-0 text-white">Ledger</h1>
-    <button
-      nz-button
-      nzType="primary"
-      nzShape="round"
-      class="theme-action-button"
-      (click)="openDrawer()"
-    >
-      <span nz-icon nzType="plus"></span>
-      <span>Add</span>
-    </button>
-  </div>
-
+  <app-page-header
+    title="Transactions"
+    (buttonClick)="openDrawer()"
+  ></app-page-header>
   <!-- View Switcher (Using Centralized TabSwitcherComponent) -->
   <app-tab-switcher
     [tabs]="tabs"
@@ -24,84 +13,18 @@
 
   <!-- VIEW 1: BY DATE -->
   @if (activeView === "date") {
-    <div class="flex flex-col gap-8">
-      @if (dateGroups.length === 0) {
-        <div class="text-center text-neutral-500 mt-10">
-          <span nz-icon nzType="swap" class="text-4xl mb-2"></span>
-          <p>No transactions found.</p>
-        </div>
-      } @else {
-        @for (group of dateGroups; track group.dateKey) {
-          <div>
-            <!-- Sticky Date Header -->
-            <div
-              class="date-group-header flex justify-between items-end mb-4 border-b border-neutral-700 pb-3 sticky top-[env(safe-area-inset-top)] z-20 -mx-4 px-4 pt-3 shadow-sm"
-            >
-              <div>
-                <h2 class="text-lg font-bold text-white m-0">
-                  {{ group.displayDate | date: "fullDate" }}
-                </h2>
-                <p class="text-xs text-neutral-400 m-0">
-                  {{ group.count }} payments
-                </p>
-              </div>
-              <div class="text-right">
-                <p
-                  class="text-[10px] text-neutral-500 uppercase tracking-wider m-0 mb-1"
-                >
-                  Daily Total
-                </p>
-                <p class="text-blue-400 font-semibold m-0 text-base">
-                  ₹{{ group.totalAmount | number: "1.2-2" }}
-                </p>
-              </div>
-            </div>
-
-            <div class="flex flex-col gap-4">
-              @for (item of group.items; track item.id) {
-                <ng-container
-                  *ngTemplateOutlet="itemCard; context: { $implicit: item }"
-                ></ng-container>
-              }
-            </div>
-          </div>
-        }
-      }
-    </div>
+    <app-transaction-by-date
+      [dateGroups]="dateGroups"
+      [itemCardTemplate]="itemCard"
+    ></app-transaction-by-date>
   }
 
   <!-- VIEW 2: BY RECEIVER (List Summary) -->
   @if (activeView === "receiver") {
-    <div class="flex flex-col gap-3">
-      @if (receiverGroups.length === 0) {
-        <div class="text-center text-neutral-500 mt-10">
-          <p>No receivers found.</p>
-        </div>
-      }
-      @for (group of receiverGroups; track group.name) {
-        <div
-          (click)="openDetail(group.name, 'receiver')"
-          class="surface-card surface-card-interactive p-4 rounded-xl flex justify-between items-center transition-colors cursor-pointer"
-        >
-          <div>
-            <h3 class="text-lg font-bold text-blue-400 m-0">
-              {{ group.name }}
-            </h3>
-            <p class="text-xs text-neutral-400 m-0">
-              {{ group.count }} Transactions
-            </p>
-          </div>
-          <div class="text-right">
-            <p class="text-[10px] text-neutral-500 uppercase m-0 mb-1">
-              Total Paid
-            </p>
-            <p class="text-lg font-semibold text-white m-0">
-              ₹{{ group.totalAmount | number: "1.0-0" }}
-            </p>
-          </div>
-        </div>
-      }
-    </div>
+    <app-transaction-receiver
+      [receiverGroups]="receiverGroups"
+      (openDetailEvent)="openDetail($event.name, $event.type)"
+    ></app-transaction-receiver>
   }
 
   <!-- DRILL-DOWN DRAWER -->
@@ -132,148 +55,21 @@
     (nzOnClose)="closeDrawer()"
   >
     <ng-container *nzDrawerContent>
-      <form
-        nz-form
-        [formGroup]="transactionForm"
-        (ngSubmit)="submitForm()"
-        nzLayout="vertical"
-      >
-        <input type="hidden" formControlName="id" />
-
-        <nz-form-item class="mb-4">
-          <nz-form-label nzRequired>Amount (₹)</nz-form-label>
-          <nz-form-control nzErrorTip="Please enter a valid amount">
-            <input
-              type="number"
-              formControlName="amount"
-              min="1"
-              placeholder="Enter amount"
-              class="w-full px-3 py-2 bg-neutral-800 border border-neutral-700 text-white rounded text-base"
-              style="
-                appearance: none;
-                -webkit-appearance: none;
-                -moz-appearance: textfield;
-              "
-            />
-          </nz-form-control>
-        </nz-form-item>
-
-        <div class="grid grid-cols-2 gap-4 mb-4">
-          <nz-form-item class="mb-0">
-            <nz-form-label nzRequired>Provider (From)</nz-form-label>
-            <nz-form-control nzErrorTip="Required">
-              <input
-                type="text"
-                formControlName="provider"
-                placeholder="e.g., Bank"
-                class="w-full px-3 py-2 bg-neutral-800 border border-neutral-700 text-white rounded text-base"
-              />
-            </nz-form-control>
-          </nz-form-item>
-
-          <nz-form-item class="mb-0">
-            <nz-form-label nzRequired>Receiver (To)</nz-form-label>
-            <nz-form-control nzErrorTip="Required">
-              <app-select
-                formControlName="receiver"
-                [options]="receiverOptions"
-                valueKey="name"
-                labelKey="name"
-                groupKey="group"
-                placeholder="Select builder or contractor"
-              ></app-select>
-            </nz-form-control>
-          </nz-form-item>
-        </div>
-
-        <nz-form-item class="mb-6">
-          <nz-form-label nzRequired>Date & Time</nz-form-label>
-          <nz-form-control>
-            <sk-datepicker
-              formControlName="dateTime"
-              placeholder="Select date and time"
-              mode="datetime"
-            ></sk-datepicker>
-          </nz-form-control>
-        </nz-form-item>
-
-        <button
-          nz-button
-          nzType="primary"
-          nzBlock
-          nzSize="large"
-          class="theme-action-button mt-4 sticky bottom-4"
-        >
-          Save Transaction
-        </button>
-      </form>
+      <app-transaction-form
+        [transactionForm]="transactionForm"
+        [displayTransactions]="displayTransactions"
+        [directoryReceivers]="directoryReceivers"
+        (submitEvent)="submitForm()"
+      ></app-transaction-form>
     </ng-container>
   </nz-drawer>
 
   <!-- REUSABLE TRANSACTION CARD TEMPLATE -->
   <ng-template #itemCard let-item>
-    <div class="surface-card p-4 rounded-xl relative">
-      <div
-        class="flex justify-between items-end border-b border-neutral-700 pb-3 mb-3 pr-8"
-      >
-        <div>
-          <p
-            class="text-[10px] text-neutral-500 uppercase tracking-wider m-0 mb-1"
-          >
-            Amount
-          </p>
-          <p class="text-2xl font-bold text-blue-400 m-0">
-            ₹{{ item.amount | number: "1.2-2" }}
-          </p>
-        </div>
-        <div class="text-right">
-          <span class="text-xs text-neutral-400 whitespace-nowrap">{{
-            item.dateTime | date: "MMM d, y, h:mm a"
-          }}</span>
-        </div>
-      </div>
-      <div class="flex items-center justify-between mt-2">
-        <div class="flex-1">
-          <p
-            class="text-[10px] text-neutral-500 uppercase tracking-wider m-0 mb-1"
-          >
-            Provider (From)
-          </p>
-          <p class="text-sm text-neutral-200 m-0 truncate">
-            {{ item.provider }}
-          </p>
-        </div>
-        <div class="px-3 text-neutral-500">
-          <span nz-icon nzType="arrow-right" nzTheme="outline"></span>
-        </div>
-        <div class="flex-1 text-right">
-          <p
-            class="text-[10px] text-neutral-500 uppercase tracking-wider m-0 mb-1"
-          >
-            Receiver (To)
-          </p>
-          <p class="text-sm text-neutral-200 m-0 truncate">
-            {{ item.receiver }}
-          </p>
-        </div>
-      </div>
-      <div class="absolute top-3 right-2 flex gap-2">
-        <button
-          (click)="openDrawer(item)"
-          class="text-neutral-400 hover:text-blue-400 bg-transparent border-none p-1"
-        >
-          <span nz-icon nzType="edit"></span>
-        </button>
-        <button
-          nz-popconfirm
-          nzPopconfirmTitle="Delete?"
-          nzPopconfirmPlacement="left"
-          (nzOnConfirm)="deleteTransaction(item.id!)"
-          class="text-neutral-400 hover:text-red-400 bg-transparent border-none p-1"
-        >
-          <span nz-icon nzType="delete"></span>
-        </button>
-      </div>
-    </div>
+    <app-transaction-card
+      [item]="item"
+      (openDrawerEvent)="openDrawer($event)"
+      (deleteTransactionEvent)="deleteTransaction($event)"
+    ></app-transaction-card>
   </ng-template>
 </div>

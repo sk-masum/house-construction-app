@@ -1,0 +1,103 @@
+<!-- Saved Estimations List -->
+<div class="flex flex-col gap-2 mt-4 mb-6">
+  @for (est of currentEstimations; track est.id) {
+    <div
+      class="bg-neutral-800 p-3 rounded-lg border border-neutral-700 flex justify-between items-center"
+    >
+      <div>
+        <p class="text-white font-medium m-0">
+          {{ est.materialName }}
+        </p>
+        <p class="text-xs text-neutral-400 m-0">
+          {{ est.qty }} {{ est.unit }} &#64; ₹{{ est.unitPrice }}
+        </p>
+      </div>
+      <div class="flex items-center gap-4">
+        <span class="text-emerald-400 font-bold"
+          >₹{{ est.totalCost | number: "1.0-0" }}</span
+        >
+        <button
+          (click)="removeEstimation.emit(est.id!)"
+          class="text-red-400 bg-transparent border-none p-0 cursor-pointer"
+        >
+          <span nz-icon nzType="close-circle"></span>
+        </button>
+      </div>
+    </div>
+  }
+  @if (currentEstimations.length === 0) {
+    <p class="text-center text-neutral-500 text-sm italic m-0">
+      No materials added yet.
+    </p>
+  }
+</div>
+@if (currentEstimations.length > 0) {
+  <div
+    class="bg-neutral-900 p-3 rounded-lg border border-neutral-700 flex justify-between items-center mb-6 shadow-inner"
+  >
+    <span class="text-[10px] text-neutral-500 uppercase tracking-wider m-0"
+      >Total Est. Material Cost</span
+    >
+    <span class="text-lg font-bold text-emerald-400 m-0"
+      >₹{{ currentEstimationsTotal | number: "1.0-0" }}</span
+    >
+  </div>
+}
+<!-- Add New Estimation Form -->
+<div class="bg-neutral-900 p-4 rounded-xl border border-neutral-700">
+  <h4 class="text-sm font-semibold text-neutral-300 mb-3">
+    Add Material Estimate
+  </h4>
+  <form
+    nz-form
+    [formGroup]="estimationForm"
+    (ngSubmit)="addEstimation.emit()"
+    nzLayout="vertical"
+  >
+    <nz-form-item class="mb-3 inline-grid w-full">
+      <app-select
+        formControlName="materialName"
+        [options]="dynamicMaterialOptions"
+        placeholder="Select Material (e.g., Cement)"
+      ></app-select>
+    </nz-form-item>
+
+    <div class="grid grid-cols-2 gap-3 mb-3">
+      <nz-form-item class="mb-0 inline-grid w-full">
+        <sk-textfield
+          formControlName="qty"
+          placeholder="Qty"
+          type="number"
+        ></sk-textfield>
+      </nz-form-item>
+      <nz-form-item class="mb-0 inline-grid w-full">
+        <app-select
+          formControlName="unit"
+          [options]="UNIT_OPTIONS"
+          placeholder="Unit"
+        ></app-select>
+      </nz-form-item>
+    </div>
+
+    <div class="flex justify-between items-center mb-4 px-1">
+      <span class="text-xs text-neutral-400 uppercase">Est. Cost</span>
+      <span class="text-emerald-400 font-bold"
+        >₹{{ estimationForm.get("totalCost")?.value | number: "1.0-0" }}</span
+      >
+    </div>
+
+    <button
+      nz-button
+      nzType="default"
+      nzBlock
+      [disabled]="!estimationForm.valid"
+      class="bg-neutral-800 text-white border-emerald-600 hover:text-emerald-400"
+    >
+      <span nz-icon nzType="plus"></span> Add to Estimate
+    </button>
+  </form>
+</div>
+
+<button class="mt-6 theme-action-button w-full" (click)="closeDrawer.emit()">
+  Finish Setup
+</button>

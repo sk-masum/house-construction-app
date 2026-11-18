@@ -1,0 +1,56 @@
+<div class="surface-card p-4 rounded-xl relative">
+  <div class="absolute right-2 top-3 flex gap-1">
+    <!-- Edit Button -->
+    <button
+      (click)="editProject.emit(project)"
+      class="text-neutral-400 hover:text-blue-400 bg-transparent border-none p-1 cursor-pointer"
+    >
+      <span nz-icon nzType="edit"></span>
+    </button>
+
+    <!-- Delete Button with Popconfirm -->
+    <button
+      nz-popconfirm
+      nzPopconfirmTitle="Delete this project? Your physical ledger entries will be kept but returned to the global view."
+      nzPopconfirmPlacement="left"
+      (nzOnConfirm)="deleteProject.emit(project.id!)"
+      class="text-neutral-400 hover:text-red-400 bg-transparent border-none p-1 cursor-pointer"
+    >
+      <span nz-icon nzType="delete"></span>
+    </button>
+  </div>
+  <h3 class="text-lg font-bold text-emerald-400 m-0 mb-1">
+    {{ project.name }}
+  </h3>
+  <p class="text-sm text-neutral-400 m-0 mb-3">
+    Contractor: <span class="text-white">{{ project.contractorName }}</span>
+  </p>
+
+  <div class="pt-3 border-t border-neutral-700 mt-2">
+    <div class="flex justify-between items-center mb-2">
+      <span class="text-xs text-neutral-400"
+        >Contractor Fee ({{ project.serviceQty }}
+        {{ project.serviceType }})</span
+      >
+      <span class="text-sm font-semibold text-white"
+        >₹{{ project.totalServiceCharge | number: "1.0-0" }}</span
+      >
+    </div>
+    <div class="flex justify-between items-center mb-3">
+      <span class="text-xs text-neutral-400">Est. Materials</span>
+      <span class="text-sm font-semibold text-white"
+        >₹{{ project.totalEstimatedMaterialCost | number: "1.0-0" }}</span
+      >
+    </div>
+    <div
+      class="flex justify-between items-center pt-2 border-t border-neutral-700/50"
+    >
+      <span class="text-[10px] text-neutral-500 uppercase tracking-wider"
+        >Total Project Budget</span
+      >
+      <span class="text-lg font-bold text-emerald-400"
+        >₹{{ project.grandTotal | number: "1.0-0" }}</span
+      >
+    </div>
+  </div>
+</div>

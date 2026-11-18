@@ -1,79 +1,16 @@
 <div class="px-4 pt-4 pb-[80px]">
-  <div class="flex justify-between items-center mb-6">
-    <h1 class="text-lg font-semibold m-0 text-white">Projects</h1>
-    <button
-      nz-button
-      nzType="primary"
-      nzShape="round"
-      class="theme-action-button"
-      (click)="openNewWork()"
-    >
-      <span nz-icon nzType="plus"></span>
-      <span>Add</span>
-    </button>
-  </div>
+  <app-page-header
+    title="Projects"
+    (buttonClick)="openNewWork()"
+  ></app-page-header>
 
-  <!-- Project Cards -->
   <div class="flex flex-col gap-4">
     @for (work of works; track work.id) {
-      <div
-        class="bg-neutral-800 p-4 rounded-xl border border-neutral-700 shadow-sm relative"
-      >
-        <div class="absolute right-2 top-3 flex gap-1">
-          <!-- Edit Button -->
-          <button
-            (click)="editWork(work)"
-            class="text-neutral-400 hover:text-blue-400 bg-transparent border-none p-1 cursor-pointer"
-          >
-            <span nz-icon nzType="edit"></span>
-          </button>
-
-          <!-- Delete Button with Popconfirm -->
-          <button
-            nz-popconfirm
-            nzPopconfirmTitle="Delete this project? Your physical ledger entries will be kept but returned to the global view."
-            nzPopconfirmPlacement="left"
-            (nzOnConfirm)="deleteWork(work.id!)"
-            class="text-neutral-400 hover:text-red-400 bg-transparent border-none p-1 cursor-pointer"
-          >
-            <span nz-icon nzType="delete"></span>
-          </button>
-        </div>
-        <h3 class="text-lg font-bold text-emerald-400 m-0 mb-1">
-          {{ work.name }}
-        </h3>
-        <p class="text-sm text-neutral-400 m-0 mb-3">
-          Contractor: <span class="text-white">{{ work.contractorName }}</span>
-        </p>
-
-        <div class="pt-3 border-t border-neutral-700 mt-2">
-          <div class="flex justify-between items-center mb-2">
-            <span class="text-xs text-neutral-400"
-              >Contractor Fee ({{ work.serviceQty }}
-              {{ work.serviceType }})</span
-            >
-            <span class="text-sm font-semibold text-white"
-              >₹{{ work.totalServiceCharge | number: "1.0-0" }}</span
-            >
-          </div>
-          <div class="flex justify-between items-center mb-3">
-            <span class="text-xs text-neutral-400">Est. Materials</span>
-            <span class="text-sm font-semibold text-white"
-              >₹{{ work.totalEstimatedMaterialCost | number: "1.0-0" }}</span
-            >
-          </div>
-          <div
-            class="flex justify-between items-center pt-2 border-t border-neutral-700/50"
-          >
-            <span class="text-[10px] text-neutral-500 uppercase tracking-wider"
-              >Total Project Budget</span
-            >
-            <span class="text-lg font-bold text-emerald-400"
-              >₹{{ work.grandTotal | number: "1.0-0" }}</span
-            >
-          </div>
-        </div>
-      </div>
+      <app-project-card
+        [project]="work"
+        (editProject)="editProject($event)"
+        (deleteProject)="deleteProject($event)"
+      ></app-project-card>
     }
     @if (works.length === 0) {
       <div class="text-center text-neutral-500 mt-10">
@@ -96,98 +33,11 @@
           label="Contract Details"
           [ariaDisabled]="currentWorkId !== null"
         >
-          <form
-            nz-form
-            [formGroup]="workForm"
-            (ngSubmit)="saveWorkStep()"
-            nzLayout="vertical"
-            class="mt-4"
-          >
-            <nz-form-item>
-              <nz-form-label nzRequired>Project Name</nz-form-label>
-              <nz-form-control>
-                <sk-textfield
-                  formControlName="name"
-                  placeholder="e.g., 1st Floor Plaster"
-                  class="w-full"
-                ></sk-textfield>
-              </nz-form-control>
-            </nz-form-item>
-
-            <nz-form-item>
-              <nz-form-label nzRequired>Contractor</nz-form-label>
-              <nz-form-control>
-                <app-select
-                  formControlName="contractorName"
-                  [options]="contractorOptions"
-                  placeholder="Select contractor"
-                  class="w-full"
-                ></app-select>
-              </nz-form-control>
-            </nz-form-item>
-
-            <div class="grid grid-cols-2 gap-4">
-              <nz-form-item>
-                <nz-form-label nzRequired>Service Type</nz-form-label>
-                <nz-form-control>
-                  <app-select
-                    formControlName="serviceType"
-                    [options]="SERVICE_TYPES"
-                    class="w-full"
-                  ></app-select>
-                </nz-form-control>
-              </nz-form-item>
-
-              <nz-form-item>
-                <nz-form-label nzRequired>Rate (₹)</nz-form-label>
-                <nz-form-control>
-                  <sk-textfield
-                    formControlName="serviceRate"
-                    placeholder="Rate"
-                    class="w-full"
-                    type="number"
-                  ></sk-textfield>
-                </nz-form-control>
-              </nz-form-item>
-            </div>
-
-            <nz-form-item>
-              <nz-form-label nzRequired>Quantity / Area</nz-form-label>
-              <nz-form-control>
-                <sk-textfield
-                  formControlName="serviceQty"
-                  placeholder="Quantity / Area"
-                  class="w-full"
-                  type="number"
-                ></sk-textfield>
-              </nz-form-control>
-            </nz-form-item>
-
-            <div
-              class="bg-neutral-900 p-3 rounded-lg border border-neutral-700 mb-6 flex justify-between items-center"
-            >
-              <p class="text-[10px] text-neutral-400 uppercase m-0">
-                Total Service Charge
-              </p>
-              <p class="text-lg font-bold text-emerald-400 m-0">
-                ₹{{
-                  workForm.get("totalServiceCharge")?.value | number: "1.0-0"
-                }}
-              </p>
-            </div>
-
-            <button
-              nz-button
-              nzType="primary"
-              nzBlock
-              nzSize="large"
-              type="submit"
-              class="theme-action-button"
-              [disabled]="!workForm.valid"
-            >
-              Save & Continue
-            </button>
-          </form>
+          <app-contract-details-form
+            [projectForm]="workForm"
+            [contractorOptions]="contractorOptions"
+            (saveWorkStep)="saveWorkStep()"
+          ></app-contract-details-form>
         </cdk-step>
 
         <!-- STEP 2: Material Estimations -->
@@ -195,121 +45,14 @@
           label="Material Estimations"
           [completed]="currentEstimations.length > 0"
         >
-          <!-- Saved Estimations List -->
-          <div class="flex flex-col gap-2 mt-4 mb-6">
-            @for (est of currentEstimations; track est.id) {
-              <div
-                class="bg-neutral-800 p-3 rounded-lg border border-neutral-700 flex justify-between items-center"
-              >
-                <div>
-                  <p class="text-white font-medium m-0">
-                    {{ est.materialName }}
-                  </p>
-                  <p class="text-xs text-neutral-400 m-0">
-                    {{ est.qty }} {{ est.unit }} &#64; ₹{{ est.unitPrice }}
-                  </p>
-                </div>
-                <div class="flex items-center gap-4">
-                  <span class="text-emerald-400 font-bold"
-                    >₹{{ est.totalCost | number: "1.0-0" }}</span
-                  >
-                  <button
-                    (click)="removeEstimation(est.id!)"
-                    class="text-red-400 bg-transparent border-none p-0 cursor-pointer"
-                  >
-                    <span nz-icon nzType="close-circle"></span>
-                  </button>
-                </div>
-              </div>
-            }
-            @if (currentEstimations.length === 0) {
-              <p class="text-center text-neutral-500 text-sm italic m-0">
-                No materials added yet.
-              </p>
-            }
-          </div>
-          @if (currentEstimations.length > 0) {
-            <div
-              class="bg-neutral-900 p-3 rounded-lg border border-neutral-700 flex justify-between items-center mb-6 shadow-inner"
-            >
-              <span
-                class="text-[10px] text-neutral-500 uppercase tracking-wider m-0"
-                >Total Est. Material Cost</span
-              >
-              <span class="text-lg font-bold text-emerald-400 m-0"
-                >₹{{ currentEstimationsTotal | number: "1.0-0" }}</span
-              >
-            </div>
-          }
-          <!-- Add New Estimation Form -->
-          <div class="bg-neutral-900 p-4 rounded-xl border border-neutral-700">
-            <h4 class="text-sm font-semibold text-neutral-300 mb-3">
-              Add Material Estimate
-            </h4>
-            <form
-              nz-form
-              [formGroup]="estForm"
-              (ngSubmit)="addEstimation()"
-              nzLayout="vertical"
-            >
-              <nz-form-item class="mb-3 inline-grid w-full">
-                <app-select
-                  formControlName="materialName"
-                  [options]="dynamicMaterialOptions"
-                  placeholder="Select Material (e.g., Cement)"
-                ></app-select>
-              </nz-form-item>
-
-              <div class="grid grid-cols-2 gap-3 mb-3">
-                <nz-form-item class="mb-0 inline-grid w-full">
-                  <sk-textfield
-                    formControlName="qty"
-                    placeholder="Qty"
-                    type="number"
-                  ></sk-textfield>
-                </nz-form-item>
-                <nz-form-item class="mb-0 inline-grid w-full">
-                  <app-select
-                    formControlName="unit"
-                    [options]="UNIT_OPTIONS"
-                    placeholder="Unit"
-                  ></app-select>
-                </nz-form-item>
-              </div>
-
-              <div class="flex justify-between items-center mb-4 px-1">
-                <span class="text-xs text-neutral-400 uppercase"
-                  >Est. Cost</span
-                >
-                <span class="text-emerald-400 font-bold"
-                  >₹{{
-                    estForm.get("totalCost")?.value | number: "1.0-0"
-                  }}</span
-                >
-              </div>
-
-              <button
-                nz-button
-                nzType="default"
-                nzBlock
-                [disabled]="!estForm.valid"
-                class="bg-neutral-800 text-white border-emerald-600 hover:text-emerald-400"
-              >
-                <span nz-icon nzType="plus"></span> Add to Estimate
-              </button>
-            </form>
-          </div>
-
-          <button
-            nz-button
-            nzType="primary"
-            nzBlock
-            nzSize="large"
-            class="mt-6 theme-action-button"
-            (click)="closeDrawer()"
-          >
-            Finish Setup
-          </button>
+          <app-material-estimation-form
+            [currentEstimations]="currentEstimations"
+            [estimationForm]="estimationForm"
+            [dynamicMaterialOptions]="dynamicMaterialOptions"
+            (removeEstimation)="removeEstimation($event)"
+            (addEstimation)="addEstimation()"
+            (closeDrawer)="closeDrawer()"
+          ></app-material-estimation-form>
         </cdk-step>
       </sk-stepper>
     </ng-container>

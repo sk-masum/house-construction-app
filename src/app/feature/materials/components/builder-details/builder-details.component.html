@@ -1,0 +1,78 @@
+<div
+  class="flex justify-between items-center mb-4 bg-neutral-800 p-4 rounded-xl border border-neutral-700"
+>
+  <div>
+    <p class="text-[10px] text-neutral-400 uppercase tracking-wider m-0 mb-1">
+      Generate PDF
+    </p>
+    <h3 class="text-white font-bold m-0 text-sm">Account Statement</h3>
+  </div>
+  <button
+    (click)="shareBuilderLedger(builderName)"
+    class="theme-action-button border-none shadow-md flex items-center gap-2"
+  >
+    <span nz-icon nzType="share-alt"></span> Share Hisab
+  </button>
+</div>
+<!-- NEW: Grouped Log View for Builders -->
+@for (group of builderDetailGroups; track group.materialName) {
+  <div class="mb-4">
+    <!-- Category Header -->
+    <div
+      class="flex justify-between items-end border-b border-neutral-700 pb-2 mb-3"
+    >
+      <h3 class="text-lg font-bold text-emerald-400 m-0">
+        {{ group.materialName }}
+      </h3>
+      <p class="text-[10px] text-neutral-400 m-0 uppercase tracking-wider">
+        Total:
+        <span class="text-white font-semibold text-sm"
+          >₹{{ group.totalPrice | number: "1.0-0" }}</span
+        >
+      </p>
+    </div>
+
+    <!-- Chronological Logs -->
+    <div class="flex flex-col gap-2">
+      @for (item of group.items; track item.id) {
+        <div
+          class="bg-neutral-800 p-3 rounded-lg border border-neutral-700 flex justify-between items-center relative pr-16"
+        >
+          <div>
+            <!-- E.g., Oct 12 - 200 pcs -->
+            <p class="text-white font-medium text-sm m-0">
+              {{ item.deliveryDate | date: "MMM d" }}
+              <span class="text-neutral-500 mx-1">-</span>
+              {{ item.qty }} unit
+            </p>
+          </div>
+          <div class="text-right">
+            <!-- E.g., ₹ 4,500 -->
+            <p class="text-emerald-400 font-semibold m-0 text-sm">
+              ₹{{ item.totalPrice | number: "1.0-0" }}
+            </p>
+          </div>
+
+          <!-- Edit / Delete actions -->
+          <div class="absolute right-2 flex gap-1">
+            <button
+              (click)="openDrawer(item)"
+              class="text-neutral-400 hover:text-blue-400 bg-transparent border-none p-1 cursor-pointer"
+            >
+              <span nz-icon nzType="edit"></span>
+            </button>
+            <button
+              nz-popconfirm
+              nzPopconfirmTitle="Delete?"
+              nzPopconfirmPlacement="left"
+              (nzOnConfirm)="deleteMaterial(item.id!)"
+              class="text-neutral-400 hover:text-red-400 bg-transparent border-none p-1 cursor-pointer"
+            >
+              <span nz-icon nzType="delete"></span>
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+}

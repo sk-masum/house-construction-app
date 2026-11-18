@@ -9,7 +9,6 @@ import { Subscription } from 'rxjs';
 import { CommonModule } from '@angular/common';
 import { StepperComponent } from './components/stepper/stepper.component';
 import { TextfieldComponent } from '../../shared/components/textfield/textfield.component';
-import { MaterialManagerComponent } from '../../core/components/material-manager/material-manager.component';
 import {
   FormBuilder,
   FormGroup,
@@ -32,24 +31,23 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { SelectComponent } from '../../shared/components/select/select.component';
 import { CdkStepperModule } from '@angular/cdk/stepper';
+import { ProjectCardComponent } from './components/project-card/project-card.component';
+import { ContractDetailsFormComponent } from './components/contract-details-form/contract-details-form.component';
+import { MaterialEstimationFormComponent } from './components/material-estimation-form/material-estimation-form.component';
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 
 @Component({
   selector: 'app-works',
   standalone: true,
   imports: [
     CommonModule,
-    ReactiveFormsModule,
-    FormsModule,
     NzDrawerModule,
-    NzFormModule,
-    NzButtonModule,
-    NzIconModule,
-    NzPopconfirmModule,
-    TextfieldComponent,
-    SelectComponent,
     CdkStepperModule,
     StepperComponent,
-    MaterialManagerComponent,
+    PageHeaderComponent,
+    ProjectCardComponent,
+    ContractDetailsFormComponent,
+    MaterialEstimationFormComponent,
   ],
   templateUrl: './works.component.html',
 })
@@ -71,7 +69,7 @@ export class WorksComponent implements OnInit, OnDestroy {
 
   // Forms
   workForm!: FormGroup;
-  estForm!: FormGroup;
+  estimationForm!: FormGroup;
 
   dynamicMaterialOptions: string[] = [];
   dynamicPriceDefaults: Record<string, number> = {};
@@ -80,10 +78,6 @@ export class WorksComponent implements OnInit, OnDestroy {
   isPriceDrawerVisible = false;
   newMaterialName = '';
   newMaterialPrice = 0;
-
-  // Dropdown Options
-  readonly SERVICE_TYPES = ['Sq Ft', 'Lump Sum', 'Daily Rate'];
-  readonly UNIT_OPTIONS = ['Bags', 'Pcs', 'VC', 'Kg', 'Ton'];
 
   constructor(
     private fb: FormBuilder,
@@ -104,7 +98,10 @@ export class WorksComponent implements OnInit, OnDestroy {
         if (kind !== 'contractors') return;
         if (previousName && name) {
           if (this.workForm.get('contractorName')?.value === previousName) {
-            this.workForm.patchValue({ contractorName: name }, { emitEvent: false });
+            this.workForm.patchValue(
+              { contractorName: name },
+              { emitEvent: false },
+            );
           }
           await this.loadWorks();
         }
@@ -141,7 +138,7 @@ export class WorksComponent implements OnInit, OnDestroy {
       this.applyContractorRate();
     });
 
-    this.estForm = this.fb.group({
+    this.estimationForm = this.fb.group({
       materialName: [null, Validators.required],
       qty: [null, Validators.required],
       unit: [null, Validators.required],
@@ -149,9 +146,9 @@ export class WorksComponent implements OnInit, OnDestroy {
       totalCost: [0, Validators.required],
     });
 
-    this.estForm.get('materialName')?.valueChanges.subscribe((mat) => {
+    this.estimationForm.get('materialName')?.valueChanges.subscribe((mat) => {
       if (mat && this.dynamicPriceDefaults[mat] !== undefined) {
-        this.estForm.patchValue(
+        this.estimationForm.patchValue(
           { unitPrice: this.dynamicPriceDefaults[mat] },
           { emitEvent: true },
         );
@@ -159,10 +156,10 @@ export class WorksComponent implements OnInit, OnDestroy {
     });
 
     // Auto-calculate Total Cost
-    this.estForm
+    this.estimationForm
       .get('qty')
       ?.valueChanges.subscribe(() => this.calculateEstTotal());
-    this.estForm
+    this.estimationForm
       .get('unitPrice')
       ?.valueChanges.subscribe(() => this.calculateEstTotal());
   }
@@ -184,7 +181,10 @@ export class WorksComponent implements OnInit, OnDestroy {
       const contractors = await this.directoryService.getEntries('contractors');
       this.contractorOptions = contractors.map((contractor) => contractor.name);
       this.contractorRates = Object.fromEntries(
-        contractors.map((contractor) => [contractor.name, contractor.defaultRate]),
+        contractors.map((contractor) => [
+          contractor.name,
+          contractor.defaultRate,
+        ]),
       );
       this.cdr.markForCheck();
     } catch (error) {
@@ -196,7 +196,10 @@ export class WorksComponent implements OnInit, OnDestroy {
   private applyContractorRate() {
     const name = this.workForm.get('contractorName')?.value;
     const rate = this.contractorRates[name];
-    if (this.workForm.get('serviceType')?.value === 'Sq Ft' && rate !== undefined) {
+    if (
+      this.workForm.get('serviceType')?.value === 'Sq Ft' &&
+      rate !== undefined
+    ) {
       this.workForm.patchValue({ serviceRate: rate });
     }
   }
@@ -210,7 +213,7 @@ export class WorksComponent implements OnInit, OnDestroy {
     });
     this.currentWorkId = null;
     this.currentEstimations = [];
-    this.estForm.reset();
+    this.estimationForm.reset();
     // Reset stepper to first step
     this.stepper?.selectStepByIndex(0);
     this.isDrawerVisible = true;
@@ -244,15 +247,18 @@ export class WorksComponent implements OnInit, OnDestroy {
   }
   // 3. Math Helper
   calculateEstTotal() {
-    const qty = this.estForm.get('qty')?.value || 0;
-    const price = this.estForm.get('unitPrice')?.value || 0;
-    this.estForm.patchValue({ totalCost: qty * price }, { emitEvent: false });
+    const qty = this.estimationForm.get('qty')?.value || 0;
+    const price = this.estimationForm.get('unitPrice')?.value || 0;
+    this.estimationForm.patchValue(
+      { totalCost: qty * price },
+      { emitEvent: false },
+    );
   }
 
   // 4. Update the Save method to enforce the math
   async addEstimation() {
-    if (this.estForm.valid && this.currentWorkId) {
-      const val = this.estForm.getRawValue();
+    if (this.estimationForm.valid && this.currentWorkId) {
+      const val = this.estimationForm.getRawValue();
       const estimation: ProjectEstimation = {
         ...val,
         projectId: this.currentWorkId,
@@ -260,7 +266,7 @@ export class WorksComponent implements OnInit, OnDestroy {
       };
 
       await this.projectService.addEstimation(estimation);
-      this.estForm.reset();
+      this.estimationForm.reset();
 
       this.currentEstimations =
         await this.projectService.getEstimationsForProject(this.currentWorkId);
@@ -278,7 +284,7 @@ export class WorksComponent implements OnInit, OnDestroy {
   }
 
   // 2. Add the Edit trigger
-  async editWork(work: Project) {
+  async editProject(work: Project) {
     this.workForm.reset();
     this.workForm.patchValue(work, { emitEvent: false });
     if (work.id === undefined) return;
@@ -294,7 +300,7 @@ export class WorksComponent implements OnInit, OnDestroy {
   }
 
   // 3. Add the Delete trigger
-  async deleteWork(id: number) {
+  async deleteProject(id: number) {
     if (!id) return; // Guard clause
 
     await this.projectService.deleteProject(id);
@@ -341,14 +347,7 @@ export class WorksComponent implements OnInit, OnDestroy {
   closeDrawer() {
     this.isDrawerVisible = false;
     this.stepper?.selectStepByIndex(0);
-    this.estForm.reset();
-  }
-
-  get currentEstimationsTotal(): number {
-    return this.currentEstimations.reduce(
-      (sum, est) => sum + (est.totalCost || 0),
-      0,
-    );
+    this.estimationForm.reset();
   }
 
   ngOnDestroy() {

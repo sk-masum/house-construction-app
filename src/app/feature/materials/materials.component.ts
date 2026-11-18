@@ -5,16 +5,13 @@ import {
   ChangeDetectorRef,
   inject,
 } from '@angular/core';
+import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
+import { BuilderViewComponent } from './components/builder-view/builder-view.component';
 import { ProjectService } from '../../core/services/project.service';
 import { DirectoryService } from '../../core/services/directory.service';
 import { MaterialCardComponent } from './components/material-card/material-card.component';
 import { CommonModule } from '@angular/common';
-import {
-  FormBuilder,
-  FormGroup,
-  Validators,
-  ReactiveFormsModule,
-} from '@angular/forms';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import {
   Material,
@@ -25,58 +22,38 @@ import {
   TabSwitcherComponent,
   TabConfig,
 } from '../../shared/components/tab-switcher.component';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 
 import { NzDrawerModule } from 'ng-zorro-antd/drawer';
-import { NzFormModule } from 'ng-zorro-antd/form';
-import { NzInputModule } from 'ng-zorro-antd/input';
-import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
-import { NzButtonModule } from 'ng-zorro-antd/button';
-import { NzIconModule } from 'ng-zorro-antd/icon';
-import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
-import { SelectComponent } from '../../shared/components/select/select.component';
-import { DatepickerComponent } from '../../shared/components/datepicker/datepicker.component';
-import { TextfieldComponent } from '../../shared/components/textfield/textfield.component';
 import {
   Transaction,
   TransactionService,
 } from '../../core/services/transaction.service';
-
-interface MaterialSummary {
-  name: string;
-  count: number;
-  totalPrice: number;
-}
-
-interface BuilderSummary {
-  name: string;
-  count: number;
-  totalPrice: number;
-  totalPaid: number;
-  dueAmount: number;
-}
+import { MaterialFormComponent } from './components/material-form/material-form.component';
+import { BuilderDetailsComponent } from './components/builder-details/builder-details.component';
+import {
+  MaterialSummary,
+  BuilderSummary,
+  MaterialViewType,
+} from './models/material.model';
+import { MaterialViewComponent } from './components/material-view/material-view.component';
+import { DateViewComponent } from './components/date-view/date-view.component';
 
 @Component({
   selector: 'app-materials',
   standalone: true,
   imports: [
-    CommonModule,
-    ReactiveFormsModule,
     TabSwitcherComponent,
-    NzDrawerModule,
-    NzFormModule,
-    NzInputModule,
-    NzInputNumberModule,
-    NzButtonModule,
-    NzIconModule,
-    NzPopconfirmModule,
+    BuilderViewComponent,
     MaterialCardComponent,
+    MaterialFormComponent,
+    BuilderDetailsComponent,
+    MaterialViewComponent,
+    DateViewComponent,
+    PageHeaderComponent,
     NzSpinModule,
-    SelectComponent,
-    DatepickerComponent,
-    TextfieldComponent,
+    CommonModule,
+    NzDrawerModule,
   ],
   templateUrl: './materials.component.html',
 })
@@ -135,21 +112,34 @@ export class MaterialsComponent implements OnInit, OnDestroy {
 
   async ngOnInit() {
     this.initForm();
-    this.materialDefaultsSub = this.materialService.materialDefaultsChanged$.subscribe(
-      () => this.loadMasterData(),
-    );
+    this.materialDefaultsSub =
+      this.materialService.materialDefaultsChanged$.subscribe(() =>
+        this.loadMasterData(),
+      );
     this.directorySub = this.directoryService.entriesChanged$.subscribe(
       async ({ kind, previousName, name }) => {
         if (kind !== 'builders') return;
         if (previousName && name) {
           if (this.materialForm.get('builderName')?.value === previousName) {
-            this.materialForm.patchValue({ builderName: name }, { emitEvent: false });
+            this.materialForm.patchValue(
+              { builderName: name },
+              { emitEvent: false },
+            );
           }
-          const builders: string[] = this.filterForm.get('builders')?.value || [];
-          this.filterForm.patchValue({
-            builders: builders.map((builder) => builder === previousName ? name : builder),
-          }, { emitEvent: false });
-          if (this.activeView === 'builder' && this.detailTitle === previousName) {
+          const builders: string[] =
+            this.filterForm.get('builders')?.value || [];
+          this.filterForm.patchValue(
+            {
+              builders: builders.map((builder) =>
+                builder === previousName ? name : builder,
+              ),
+            },
+            { emitEvent: false },
+          );
+          if (
+            this.activeView === 'builder' &&
+            this.detailTitle === previousName
+          ) {
             this.detailTitle = name;
           }
           await this.loadMaterials();
@@ -169,7 +159,8 @@ export class MaterialsComponent implements OnInit, OnDestroy {
   }
 
   async loadMasterData() {
-    this.dynamicPriceDefaults = await this.materialService.getMaterialDefaults();
+    this.dynamicPriceDefaults =
+      await this.materialService.getMaterialDefaults();
     this.dynamicMaterialOptions = Object.keys(this.dynamicPriceDefaults);
     this.cdr.detectChanges();
   }
@@ -237,7 +228,9 @@ export class MaterialsComponent implements OnInit, OnDestroy {
       }
     });
 
-    this.formSub = this.materialForm.valueChanges.subscribe(() => this.calculateTotal());
+    this.formSub = this.materialForm.valueChanges.subscribe(() =>
+      this.calculateTotal(),
+    );
   }
 
   calculateTotal(): void {
@@ -377,7 +370,7 @@ export class MaterialsComponent implements OnInit, OnDestroy {
     this.setView(value as 'date' | 'material' | 'builder');
   }
 
-  async openDetail(title: string, type: 'builder' | 'material') {
+  async openDetail(title: string, type: MaterialViewType) {
     this.detailTitle = title;
     this.isDetailVisible = true;
     this.detailItems = []; // Clear old data to prevent flickering
@@ -534,106 +527,6 @@ export class MaterialsComponent implements OnInit, OnDestroy {
       this.builderDetailGroups = Array.from(map.values()).sort(
         (a, b) => b.totalPrice - a.totalPrice,
       );
-    }
-  }
-
-  async shareBuilderLedger(builderName: string) {
-    // 1. Fetch both Materials and Ledger Payments for this specific builder
-    const [materials, transactions] = await Promise.all([
-      this.materialService.getFilteredMaterials({
-        builders: [builderName],
-      }),
-      this.transactionService.getFilteredTransactions({
-        receivers: [builderName],
-      }),
-    ]);
-
-    // 2. Calculate Totals
-    const totalBilled = materials.reduce(
-      (sum, m) => sum + (m.totalPrice || 0),
-      0,
-    );
-    const totalPaid = transactions.reduce((sum, t) => sum + (t.amount || 0), 0);
-    const dueAmount = totalBilled - totalPaid;
-
-    // 3. Merge and Sort chronologically for the statement table
-    const timeline = [
-      ...materials.map((m) => ({
-        date: m.deliveryDate,
-        desc: `${m.name} (${m.qty})`,
-        bill: m.totalPrice,
-        paid: 0,
-      })),
-      ...transactions.map((t) => ({
-        date: t.dateTime,
-        desc: `Payment (${t.provider})`,
-        bill: 0,
-        paid: t.amount,
-      })),
-    ].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-
-    // 4. Map to Array format for autoTable
-    const tableBody = timeline.map((item) => [
-      new Date(item.date).toLocaleDateString('en-IN'),
-      item.desc,
-      item.bill > 0 ? `Rs. ${item.bill.toLocaleString('en-IN')}` : '-',
-      item.paid > 0 ? `Rs. ${item.paid.toLocaleString('en-IN')}` : '-',
-    ]);
-
-    // 5. Initialize PDF Document
-    const doc = new jsPDF();
-
-    // Header Text
-    doc.setFontSize(18);
-    doc.text(`Account Statement: ${builderName}`, 14, 20);
-    doc.setFontSize(11);
-    doc.setTextColor(100);
-    doc.text(
-      `Date Generated: ${new Date().toLocaleDateString('en-IN')}`,
-      14,
-      28,
-    );
-
-    // Financial Summary
-    doc.setTextColor(0);
-    doc.text(`Total Bill: Rs. ${totalBilled.toLocaleString('en-IN')}`, 14, 38);
-    doc.text(`Total Paid: Rs. ${totalPaid.toLocaleString('en-IN')}`, 14, 44);
-
-    const dueText =
-      dueAmount < 0
-        ? `Advance Given: Rs. ${Math.abs(dueAmount).toLocaleString('en-IN')}`
-        : `Outstanding Due: Rs. ${dueAmount.toLocaleString('en-IN')}`;
-    doc.setFont('helvetica', 'bold');
-    doc.text(dueText, 14, 50);
-
-    // 6. Generate Table
-    autoTable(doc, {
-      startY: 56,
-      head: [['Date', 'Description', 'Bill Amount', 'Paid']],
-      body: tableBody,
-      theme: 'striped',
-      headStyles: { fillColor: [39, 39, 42] }, // Tailwind neutral-800 to match your app
-    });
-
-    // 7. Trigger Native iOS Share Sheet
-    const pdfBlob = doc.output('blob');
-    const file = new File([pdfBlob], `${builderName}_Hisab.pdf`, {
-      type: 'application/pdf',
-    });
-
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try {
-        await navigator.share({
-          files: [file],
-          title: `${builderName} Ledger`,
-          text: `Here is the latest account statement (Hisab) for ${builderName}.`,
-        });
-      } catch (err) {
-        console.error('User cancelled or share failed:', err);
-      }
-    } else {
-      // Fallback for desktop browsers
-      doc.save(`${builderName}_Hisab.pdf`);
     }
   }
 

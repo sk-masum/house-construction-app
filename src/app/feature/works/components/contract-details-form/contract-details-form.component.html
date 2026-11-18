@@ -1,0 +1,86 @@
+<form
+  nz-form
+  [formGroup]="projectForm"
+  (ngSubmit)="saveWorkStep.emit()"
+  nzLayout="vertical"
+  class="mt-4"
+>
+  <nz-form-item>
+    <nz-form-label nzRequired>Project Name</nz-form-label>
+    <nz-form-control>
+      <sk-textfield
+        formControlName="name"
+        placeholder="e.g., 1st Floor Plaster"
+        class="w-full"
+      ></sk-textfield>
+    </nz-form-control>
+  </nz-form-item>
+
+  <nz-form-item>
+    <nz-form-label nzRequired>Contractor</nz-form-label>
+    <nz-form-control>
+      <app-select
+        formControlName="contractorName"
+        [options]="contractorOptions"
+        placeholder="Select contractor"
+        class="w-full"
+      ></app-select>
+    </nz-form-control>
+  </nz-form-item>
+
+  <div class="grid grid-cols-2 gap-4">
+    <nz-form-item>
+      <nz-form-label nzRequired>Service Type</nz-form-label>
+      <nz-form-control>
+        <app-select
+          formControlName="serviceType"
+          [options]="SERVICE_TYPES"
+          class="w-full"
+        ></app-select>
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label nzRequired>Rate (₹)</nz-form-label>
+      <nz-form-control>
+        <sk-textfield
+          formControlName="serviceRate"
+          placeholder="Rate"
+          class="w-full"
+          type="number"
+        ></sk-textfield>
+      </nz-form-control>
+    </nz-form-item>
+  </div>
+
+  <nz-form-item>
+    <nz-form-label nzRequired>Quantity / Area</nz-form-label>
+    <nz-form-control>
+      <sk-textfield
+        formControlName="serviceQty"
+        placeholder="Quantity / Area"
+        class="w-full"
+        type="number"
+      ></sk-textfield>
+    </nz-form-control>
+  </nz-form-item>
+
+  <div
+    class="bg-neutral-900 p-3 rounded-lg border border-neutral-700 mb-6 flex justify-between items-center"
+  >
+    <p class="text-[10px] text-neutral-400 uppercase m-0">
+      Total Service Charge
+    </p>
+    <p class="text-lg font-bold text-emerald-400 m-0">
+      ₹{{ projectForm.get("totalServiceCharge")?.value | number: "1.0-0" }}
+    </p>
+  </div>
+
+  <button
+    type="submit"
+    class="theme-action-button w-full"
+    [disabled]="!projectForm.valid"
+  >
+    Save & Continue
+  </button>
+</form>

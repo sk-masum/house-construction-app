@@ -1,0 +1,75 @@
+<div class="flex flex-col gap-3">
+  @if (builderGroups.length === 0) {
+    <div class="text-center text-neutral-500 mt-10">
+      <p>No builders found.</p>
+    </div>
+  }
+  @for (group of builderGroups; track group.name) {
+    <div
+      (click)="openDetail(group.name, 'builder')"
+      class="bg-neutral-800 p-4 rounded-xl border border-neutral-700 shadow-sm flex flex-col active:bg-neutral-700 transition-colors cursor-pointer"
+    >
+      <div class="flex justify-between items-start mb-3">
+        <div>
+          <h3 class="text-lg font-bold text-blue-400 m-0">
+            {{ group.name }}
+          </h3>
+          <p class="text-xs text-neutral-400 m-0">
+            {{ group.count }} Material Deliveries
+          </p>
+        </div>
+        <span
+          nz-icon
+          nzType="right"
+          class="text-neutral-500 text-sm mt-1"
+        ></span>
+      </div>
+
+      <div
+        class="flex justify-between items-center pt-3 border-t border-neutral-700"
+      >
+        <!-- Total Material Cost -->
+        <div>
+          <p class="text-[10px] text-neutral-500 uppercase m-0 mb-1">
+            Total Bill
+          </p>
+          <p class="text-sm font-semibold text-white m-0">
+            ₹{{ group.totalPrice | number: "1.0-0" }}
+          </p>
+        </div>
+
+        <!-- Total Paid from Ledger -->
+        <div class="text-center">
+          <p class="text-[10px] text-neutral-500 uppercase m-0 mb-1">Paid</p>
+          <p class="text-sm font-semibold text-emerald-400 m-0">
+            ₹{{ group.totalPaid | number: "1.0-0" }}
+          </p>
+        </div>
+
+        <!-- Calculated Due (Dynamic colors for Due vs Advance) -->
+        <div class="text-right">
+          <p class="text-[10px] text-neutral-500 uppercase m-0 mb-1">
+            Due Amount
+          </p>
+          <p
+            class="text-sm font-bold m-0"
+            [ngClass]="
+              group.dueAmount <= 0 ? 'text-emerald-400' : 'text-red-400'
+            "
+          >
+            ₹{{
+              (group.dueAmount > 0 ? group.dueAmount : group.dueAmount * -1)
+                | number: "1.0-0"
+            }}
+
+            @if (group.dueAmount < 0) {
+              <span class="text-[10px] ml-1 font-normal text-emerald-400/80"
+                >(Adv)</span
+              >
+            }
+          </p>
+        </div>
+      </div>
+    </div>
+  }
+</div>
