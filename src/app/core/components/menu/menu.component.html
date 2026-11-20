@@ -1,14 +1,3 @@
-<button
-  type="button"
-  class="menu-trigger"
-  aria-label="Open menu"
-  aria-haspopup="dialog"
-  [attr.aria-expanded]="isMenuOpen"
-  (click)="openMenu()"
->
-  <span nz-icon nzType="menu" nzTheme="outline"></span>
-</button>
-
 <input
   #fileInput
   type="file"
@@ -17,106 +6,52 @@
   (change)="onFileSelected($event)"
 />
 
-<ng-template #menuTitle>
-  <div class="menu-brand">
-    <strong>SiteLedger<span aria-hidden="true">.</span></strong>
-    <span>Workspace menu</span>
-  </div>
-</ng-template>
+<sk-sidebar-menu
+  brandTitle="SiteLedger"
+  brandSubtitle="Workspace menu"
+  sectionLabel="Manage your workspace"
+  variant="editorial"
+  theme="auto"
+  placement="right"
+  [showTrigger]="true"
+  [open]="isMenuOpen"
+  [items]="menuItems"
+  (skOpenChange)="isMenuOpen = $event.detail"
+  (skItemSelect)="onMenuItemSelect($event)"
+>
+  <div slot="footer" class="menu-footer">
+    <p class="menu-caption">Project backups</p>
+    <div class="menu-backup-actions" role="group" aria-label="Project backups">
+      <button
+        type="button"
+        class="menu-backup"
+        [disabled]="isImporting || isExporting || isLoadingMaterials"
+        [attr.aria-busy]="isImporting"
+        (click)="importProjectClick()"
+      >
+        <span class="menu-backup-label">
+          {{ isImporting ? "Importing..." : "Import" }}
+          <span nz-icon nzType="upload" aria-hidden="true"></span>
+        </span>
+        <small>Restore a project</small>
+      </button>
 
-<ng-template #menuContent>
-  <div class="menu-layout">
-    <div class="menu-main">
-      <p class="menu-caption">Manage your workspace</p>
-      <nav aria-label="Workspace managers" class="menu-options">
-        <button
-          type="button"
-          class="menu-item"
-          [disabled]="isImporting || isExporting || isLoadingMaterials"
-          [attr.aria-busy]="isLoadingMaterials"
-          (click)="openMaterialManager()"
-        >
-          <span>
-            <strong>{{ isLoadingMaterials ? "Loading..." : "Materials" }}</strong>
-            <small>Materials &amp; default prices</small>
-          </span>
-          <span
-            nz-icon
-            nzType="arrow-right"
-            class="menu-item-arrow"
-            aria-hidden="true"
-          ></span>
-        </button>
-        <button
-          type="button"
-          class="menu-item"
-          [disabled]="isImporting || isExporting || isLoadingMaterials"
-          (click)="openDirectoryManager('builders')"
-        >
-          <span>
-            <strong>Builders</strong>
-            <small>Builders &amp; delivery charges</small>
-          </span>
-          <span
-            nz-icon
-            nzType="arrow-right"
-            class="menu-item-arrow"
-            aria-hidden="true"
-          ></span>
-        </button>
-        <button
-          type="button"
-          class="menu-item"
-          [disabled]="isImporting || isExporting || isLoadingMaterials"
-          (click)="openDirectoryManager('contractors')"
-        >
-          <span>
-            <strong>Contractors</strong>
-            <small>Contractors &amp; square-foot rates</small>
-          </span>
-          <span
-            nz-icon
-            nzType="arrow-right"
-            class="menu-item-arrow"
-            aria-hidden="true"
-          ></span>
-        </button>
-      </nav>
+      <button
+        type="button"
+        class="menu-backup"
+        [disabled]="isImporting || isExporting || isLoadingMaterials"
+        [attr.aria-busy]="isExporting"
+        (click)="exportProject()"
+      >
+        <span class="menu-backup-label">
+          {{ isExporting ? "Exporting..." : "Export" }}
+          <span nz-icon nzType="download" aria-hidden="true"></span>
+        </span>
+        <small>Back up this project</small>
+      </button>
     </div>
-
-    <footer class="menu-footer">
-      <p class="menu-caption">Project backups</p>
-      <div class="menu-backup-actions" role="group" aria-label="Project backups">
-        <button
-          type="button"
-          class="menu-backup"
-          [disabled]="isImporting || isExporting || isLoadingMaterials"
-          [attr.aria-busy]="isImporting"
-          (click)="importProjectClick()"
-        >
-          <span class="menu-backup-label">
-            {{ isImporting ? "Importing..." : "Import" }}
-            <span nz-icon nzType="upload" aria-hidden="true"></span>
-          </span>
-          <small>Restore a project</small>
-        </button>
-        <button
-          type="button"
-          class="menu-backup"
-          [disabled]="isImporting || isExporting || isLoadingMaterials"
-          [attr.aria-busy]="isExporting"
-          (click)="exportProject()"
-        >
-          <span class="menu-backup-label">
-            {{ isExporting ? "Exporting..." : "Export" }}
-            <span nz-icon nzType="download" aria-hidden="true"></span>
-          </span>
-          <small>Back up this project</small>
-        </button>
-      </div>
-    </footer>
   </div>
-</ng-template>
+</sk-sidebar-menu>
 
 <app-material-manager
   [(isPriceDrawerVisible)]="isPriceDrawerVisible"

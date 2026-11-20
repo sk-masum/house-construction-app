@@ -2,11 +2,8 @@ import {
   ChangeDetectorRef,
   Component,
   ElementRef,
-  OnDestroy,
-  TemplateRef,
   ViewChild,
 } from '@angular/core';
-import { NzDrawerModule, NzDrawerRef, NzDrawerService } from 'ng-zorro-antd/drawer';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { BackupService } from '../../services/backup.service';
 import { ProjectService } from '../../services/project.service';
@@ -14,15 +11,21 @@ import { MaterialService } from '../../services/material.service';
 import { MaterialManagerComponent } from '../material-manager/material-manager.component';
 import { DirectoryManagerComponent } from '../directory-manager/directory-manager.component';
 import { DirectoryKind } from '../../services/directory.service';
+import { SkSidebarMenu } from '@seakh/ui-angular';
 
 @Component({
   selector: 'app-menu',
   standalone: true,
-  imports: [NzDrawerModule, NzIconModule, MaterialManagerComponent, DirectoryManagerComponent],
+  imports: [
+    NzIconModule,
+    MaterialManagerComponent,
+    DirectoryManagerComponent,
+    SkSidebarMenu,
+  ],
   templateUrl: './menu.component.html',
   styleUrl: './menu.component.scss',
 })
-export class MenuComponent implements OnDestroy {
+export class MenuComponent {
   isMenuOpen = false;
   isPriceDrawerVisible = false;
   isDirectoryDrawerVisible = false;
@@ -32,49 +35,60 @@ export class MenuComponent implements OnDestroy {
   isImporting = false;
   dynamicMaterialOptions: string[] = [];
   dynamicPriceDefaults: Record<string, number> = {};
-  private menuDrawer?: NzDrawerRef;
-  private managerAfterClose: 'materials' | DirectoryKind | null = null;
-  @ViewChild('menuContent', { static: true }) menuContent!: TemplateRef<{
-    $implicit: unknown;
-    drawerRef: NzDrawerRef;
-  }>;
-  @ViewChild('menuTitle', { static: true }) menuTitle!: TemplateRef<object>;
+
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
   constructor(
     private projectService: ProjectService,
     private backupService: BackupService,
     private materialService: MaterialService,
-    private drawerService: NzDrawerService,
     private cdr: ChangeDetectorRef,
   ) {}
 
-  openMenu() {
-    if (this.menuDrawer) return;
-    this.isMenuOpen = true;
-    this.menuDrawer = this.drawerService.create<object, unknown>({
-      nzTitle: this.menuTitle,
-      nzPlacement: 'left',
-      nzWidth: 'min(460px, 100vw)',
-      nzWrapClassName: 'app-menu-drawer',
-      nzContent: this.menuContent,
-      nzOnCancel: async () => {
-        this.isMenuOpen = false;
-        return true;
+  get menuItems() {
+    const isBusy =
+      this.isImporting || this.isExporting || this.isLoadingMaterials;
+
+    return [
+      {
+        id: 'materials',
+        label: this.isLoadingMaterials ? 'Loading...' : 'Materials',
+        description: 'Materials & default prices',
+        disabled: isBusy,
       },
-    });
-    this.menuDrawer.afterClose.subscribe(() => {
-      this.menuDrawer = undefined;
-      this.isMenuOpen = false;
-      if (this.managerAfterClose === 'materials') {
-        this.isPriceDrawerVisible = true;
-      } else if (this.managerAfterClose) {
-        this.directoryKind = this.managerAfterClose;
-        this.isDirectoryDrawerVisible = true;
-      }
-      this.managerAfterClose = null;
-      this.cdr.markForCheck();
-    });
+      {
+        id: 'builders',
+        label: 'Builders',
+        description: 'Builders & delivery charges',
+        disabled: isBusy,
+      },
+      {
+        id: 'contractors',
+        label: 'Contractors',
+        description: 'Contractors & square-foot rates',
+        disabled: isBusy,
+      },
+    ];
+  }
+
+  openMenu() {
+    this.isMenuOpen = true;
+  }
+
+  onMenuItemSelect(event: CustomEvent<{ id: string }>) {
+    this.isMenuOpen = false;
+
+    switch (event.detail.id) {
+      case 'materials':
+        this.openMaterialManager();
+        break;
+      case 'builders':
+        this.openDirectoryManager('builders');
+        break;
+      case 'contractors':
+        this.openDirectoryManager('contractors');
+        break;
+    }
   }
 
   async exportProject() {
@@ -88,7 +102,7 @@ export class MenuComponent implements OnDestroy {
     this.isExporting = true;
     try {
       await this.backupService.exportProjectToFile(projectId);
-      this.menuDrawer?.close();
+      this.isMenuOpen = false;
     } catch (error) {
       console.error('Export failed', error);
       alert('Failed to export project. Please try again.');
@@ -111,7 +125,7 @@ export class MenuComponent implements OnDestroy {
 
     try {
       const projectName = await this.backupService.importProjectFromFile(file);
-      this.menuDrawer?.close();
+      this.isMenuOpen = false;
       alert(`Successfully imported: ${projectName}`);
     } catch (error) {
       console.error('Import failed', error);
@@ -137,10 +151,8 @@ export class MenuComponent implements OnDestroy {
     this.isLoadingMaterials = true;
     try {
       await this.loadMasterData();
-      if (this.menuDrawer && this.isMenuOpen) {
-        this.managerAfterClose = 'materials';
-        this.menuDrawer.close();
-      }
+      this.isMenuOpen = false;
+      this.isPriceDrawerVisible = true;
     } catch (error) {
       console.error('Failed to load material prices', error);
       alert('Failed to load material prices. Please try again.');
@@ -151,13 +163,8 @@ export class MenuComponent implements OnDestroy {
   }
 
   openDirectoryManager(kind: DirectoryKind) {
-    if (!this.menuDrawer) return;
-    this.managerAfterClose = kind;
-    this.menuDrawer.close();
-  }
-
-  ngOnDestroy() {
-    this.managerAfterClose = null;
-    this.menuDrawer?.close();
+    this.directoryKind = kind;
+    this.isMenuOpen = false;
+    this.isDirectoryDrawerVisible = true;
   }
 }
