@@ -2,4 +2,38 @@
 <main class="safe-area-view text-neutral-100">
   <router-outlet></router-outlet>
 </main>
-<app-bottom-bar></app-bottom-bar>
+<sk-bottom-dock
+  theme="auto"
+  [items]="dockItems"
+  [activeId]="activeTab()"
+  (skTabSelect)="$event.detail.href !== undefined && onTabSelect($any($event))"
+>
+  <span
+    slot="icon-dashboard"
+    nz-icon
+    nzType="appstore"
+    nzTheme="outline"
+    class="dock-icon"
+  ></span>
+  <span
+    slot="icon-materials"
+    nz-icon
+    nzType="gold"
+    nzTheme="outline"
+    class="dock-icon"
+  ></span>
+  <span
+    slot="icon-transactions"
+    nz-icon
+    nzType="swap"
+    nzTheme="outline"
+    class="dock-icon"
+  ></span>
+  <span
+    slot="icon-projects"
+    nz-icon
+    nzType="project"
+    nzTheme="outline"
+    class="dock-icon"
+  ></span>
+</sk-bottom-dock>
